@@ -4,9 +4,11 @@ using System.Security.Authentication;
 using System.Net;
 
 using Microsoft.AspNetCore.Mvc;
+
 using NuciAPI.Requests;
 using NuciAPI.Responses;
 using NuciDAL.Repositories;
+using System.Collections.Generic;
 
 namespace NuciAPI.Controllers
 {
@@ -20,28 +22,11 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            try
+            return ExecuteWithStandardHandling(() =>
             {
                 action();
-
                 return Ok(NuciApiSuccessResponse.Default);
-            }
-            catch (DuplicateEntityException ex)
-            {
-                return Conflict(new NuciApiErrorResponse(ex));
-            }
-            catch (AuthenticationException ex)
-            {
-                return StatusCode((int)HttpStatusCode.Forbidden, new NuciApiErrorResponse(ex));
-            }
-            catch (SecurityException ex)
-            {
-                return Unauthorized(new NuciApiErrorResponse(ex));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new NuciApiErrorResponse(ex.GetType().ToString()));
-            }
+            });
         }
 
         protected ActionResult ProcessRequest<TRequest, TResponse>(TRequest request, Func<TResponse> action)
@@ -53,31 +38,44 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            try
+            return ExecuteWithStandardHandling(() =>
             {
                 TResponse response = action();
 
-                if (response is null)
+                if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (Request.Method.Equals("GET"))
-                    {
-                        return NotFound("Resource not found.");
-                    }
+                    return NotFound("Resource not found.");
                 }
 
-                return Ok(action());
-            }
-            catch (DuplicateEntityException ex)
+                return Ok(response);
+            });
+        }
+
+        private ActionResult ExecuteWithStandardHandling(Func<ActionResult> action)
+        {
+            try
             {
-                return Conflict(new NuciApiErrorResponse(ex));
+                return action();
+            }
+            catch (SecurityException ex)
+            {
+                return Unauthorized(new NuciApiErrorResponse(ex));
             }
             catch (AuthenticationException ex)
             {
                 return StatusCode((int)HttpStatusCode.Forbidden, new NuciApiErrorResponse(ex));
             }
-            catch (SecurityException ex)
+            catch (KeyNotFoundException)
             {
-                return Unauthorized(new NuciApiErrorResponse(ex));
+                return NotFound(NuciApiErrorResponse.NotFound);
+            }
+            catch (DuplicateEntityException)
+            {
+                return Conflict(NuciApiErrorResponse.AlreadyExists);
+            }
+            catch (TimeoutException)
+            {
+                return StatusCode((int)HttpStatusCode.GatewayTimeout, new NuciApiErrorResponse("The request has timed out."));
             }
             catch (Exception ex)
             {
