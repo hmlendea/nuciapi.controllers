@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security;
 using NuciAPI.Requests;
 using NuciAPI.Responses;
+using System.Security.Authentication;
+using System.Net;
 
 namespace NuciAPI.Controllers
 {
@@ -55,6 +57,10 @@ namespace NuciAPI.Controllers
                 }
 
                 return Ok(action());
+            }
+            catch (AuthenticationException ex)
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, new NuciApiErrorResponse(ex));
             }
             catch (SecurityException ex)
             {
