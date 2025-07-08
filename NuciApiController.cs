@@ -14,6 +14,13 @@ namespace NuciAPI.Controllers
 {
     public abstract class NuciApiController : ControllerBase
     {
+        /// <summary>
+        /// Processes a request and returns a response.
+        /// </summary>
+        /// <typeparam name="TRequest">The type of the request.</typeparam>
+        /// <param name="request">The request object containing the parameters.</param>
+        /// <param name="action">The action to execute.</param>
+        /// <returns>An ActionResult containing the response.</returns>
         protected ActionResult ProcessRequest<TRequest>(TRequest request, Action action)
             where TRequest : NuciApiRequest
         {
@@ -29,6 +36,14 @@ namespace NuciAPI.Controllers
             });
         }
 
+        /// <summary>
+        /// Processes a request and returns a response.
+        /// </summary>
+        /// <typeparam name="TRequest">The type of the request.</typeparam>
+        /// <typeparam name="TResponse">The type of the response.</typeparam>
+        /// <param name="request">The request object containing the parameters.</param>
+        /// <param name="action">The action to execute, which should return a response of type TResponse.</param>
+        /// <returns>An ActionResult containing the response.</returns>
         protected ActionResult ProcessRequest<TRequest, TResponse>(TRequest request, Func<TResponse> action)
             where TRequest : NuciApiRequest
             where TResponse : NuciApiResponse
