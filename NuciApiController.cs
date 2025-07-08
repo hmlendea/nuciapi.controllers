@@ -1,11 +1,12 @@
 using System;
-
-using Microsoft.AspNetCore.Mvc;
 using System.Security;
-using NuciAPI.Requests;
-using NuciAPI.Responses;
 using System.Security.Authentication;
 using System.Net;
+
+using Microsoft.AspNetCore.Mvc;
+using NuciAPI.Requests;
+using NuciAPI.Responses;
+using NuciDAL.Repositories;
 
 namespace NuciAPI.Controllers
 {
@@ -25,13 +26,21 @@ namespace NuciAPI.Controllers
 
                 return Ok(NuciApiSuccessResponse.Default);
             }
+            catch (DuplicateEntityException ex)
+            {
+                return Conflict(new NuciApiErrorResponse(ex));
+            }
+            catch (AuthenticationException ex)
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, new NuciApiErrorResponse(ex));
+            }
             catch (SecurityException ex)
             {
                 return Unauthorized(new NuciApiErrorResponse(ex));
             }
             catch (Exception ex)
             {
-                return BadRequest(new NuciApiErrorResponse(ex));
+                return BadRequest(new NuciApiErrorResponse(ex.GetType().ToString()));
             }
         }
 
@@ -57,6 +66,10 @@ namespace NuciAPI.Controllers
                 }
 
                 return Ok(action());
+            }
+            catch (DuplicateEntityException ex)
+            {
+                return Conflict(new NuciApiErrorResponse(ex));
             }
             catch (AuthenticationException ex)
             {
