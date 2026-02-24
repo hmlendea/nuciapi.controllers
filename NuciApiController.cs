@@ -10,6 +10,7 @@ using NuciAPI.Responses;
 using NuciDAL.Repositories;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace NuciAPI.Controllers
 {
@@ -21,8 +22,12 @@ namespace NuciAPI.Controllers
         /// <typeparam name="TRequest">The type of the request.</typeparam>
         /// <param name="request">The request object containing the parameters.</param>
         /// <param name="action">The action to execute.</param>
+        /// <param name="authorisation">The authorisation method to use for the request.</param>
         /// <returns>An ActionResult containing the response.</returns>
-        protected ActionResult ProcessRequest<TRequest>(TRequest request, Action action)
+        protected ActionResult ProcessRequest<TRequest>(
+            TRequest request,
+            Action action,
+            NuciApiAuthorisation authorisation)
             where TRequest : NuciApiRequest
         {
             if (request is null)
@@ -30,10 +35,11 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            RetrieveHmacTokenFromHeaders(request);
-
             return ExecuteWithStandardHandling(() =>
             {
+                AuthoriseRequest(authorisation);
+                RetrieveHmacTokenFromHeaders(request);
+
                 action();
                 return Ok(NuciApiSuccessResponse.Default);
             });
@@ -46,8 +52,12 @@ namespace NuciAPI.Controllers
         /// <typeparam name="TResponse">The type of the response.</typeparam>
         /// <param name="request">The request object containing the parameters.</param>
         /// <param name="action">The action to execute, which should return a response of type TResponse.</param>
+        /// <param name="authorisation">The authorisation method to use for the request.</param>
         /// <returns>An ActionResult containing the response.</returns>
-        protected ActionResult ProcessRequest<TRequest, TResponse>(TRequest request, Func<TResponse> action)
+        protected ActionResult ProcessRequest<TRequest, TResponse>(
+            TRequest request,
+            Func<TResponse> action,
+            NuciApiAuthorisation authorisation)
             where TRequest : NuciApiRequest
             where TResponse : NuciApiResponse
         {
@@ -56,10 +66,11 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            RetrieveHmacTokenFromHeaders(request);
-
             return ExecuteWithStandardHandling(() =>
             {
+                AuthoriseRequest(authorisation);
+                RetrieveHmacTokenFromHeaders(request);
+
                 TResponse response = action();
 
                 if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
@@ -71,10 +82,23 @@ namespace NuciAPI.Controllers
             });
         }
 
+        protected string GetHeaderValue(string headerName)
+            => Request.Headers[headerName].FirstOrDefault();
+
+        private void AuthoriseRequest(NuciApiAuthorisation authorisation)
+        {
+            if (authorisation is null)
+            {
+                throw new NotImplementedException("This endpoint has no authorisation specified.");
+            }
+
+            authorisation.Authorise(GetHeaderValue("Authorization"));
+        }
+
         private void RetrieveHmacTokenFromHeaders<TRequest>(TRequest request)
             where TRequest : NuciApiRequest
         {
-            string hmacToken = Request.Headers["X-HMAC"].FirstOrDefault();
+            string hmacToken = GetHeaderValue("X-HMAC");
 
             if (!string.IsNullOrEmpty(hmacToken))
             {
@@ -88,7 +112,10 @@ namespace NuciAPI.Controllers
             {
                 return action();
             }
-            catch (SecurityException ex)
+            catch (Exception ex) when (
+                ex is SecurityException ||
+                ex is UnauthorizedAccessException
+            )
             {
                 return Unauthorized(new NuciApiErrorResponse(ex));
             }
@@ -107,6 +134,10 @@ namespace NuciAPI.Controllers
             catch (TimeoutException)
             {
                 return StatusCode((int)HttpStatusCode.GatewayTimeout, new NuciApiErrorResponse("The request has timed out."));
+            }
+            catch (NotImplementedException ex)
+            {
+                return StatusCode((int)HttpStatusCode.NotImplemented, new NuciApiErrorResponse(ex.Message ?? "This endpoint has not been implemented."));
             }
             catch (Exception ex)
             {
