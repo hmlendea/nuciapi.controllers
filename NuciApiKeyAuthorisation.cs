@@ -83,7 +83,7 @@ namespace NuciAPI.Controllers
             => !other.Equals(current);
 
         public static implicit operator string(
-            NuciApiKeyAuthorisation authenticationMethod)
-            => authenticationMethod.Name;
+            NuciApiKeyAuthorisation authorisationMethod)
+            => authorisationMethod.ToString();
     }
 }

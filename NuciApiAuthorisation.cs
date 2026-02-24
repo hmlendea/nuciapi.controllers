@@ -25,7 +25,7 @@ namespace NuciAPI.Controllers
                 RegexOptions.IgnoreCase));
         }
 
-        protected abstract void PerformAuthorisation(string authenticationData);
+        protected abstract void PerformAuthorisation(string authorisationData);
 
         public bool Equals(NuciApiAuthorisation other)
         {
@@ -64,7 +64,7 @@ namespace NuciAPI.Controllers
 
         public override int GetHashCode() => $"{nameof(NuciApiAuthorisation)}:{Name}".GetHashCode();
 
-        public override string ToString() => Name;
+        public override string ToString() => $"{Name}Authorisation";
 
         public static bool operator ==(
             NuciApiAuthorisation current,
@@ -77,7 +77,7 @@ namespace NuciAPI.Controllers
             => !current.Equals(other);
 
         public static implicit operator string(
-            NuciApiAuthorisation authenticationMethod)
-            => authenticationMethod.Name;
+            NuciApiAuthorisation authorisationMethod)
+            => authorisationMethod.ToString();
     }
 }
