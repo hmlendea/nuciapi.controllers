@@ -21,8 +21,12 @@ namespace NuciAPI.Controllers
         /// <typeparam name="TRequest">The type of the request.</typeparam>
         /// <param name="request">The request object containing the parameters.</param>
         /// <param name="action">The action to execute.</param>
+        /// <param name="authorisation">The authorisation method to use for the request.</param>
         /// <returns>An ActionResult containing the response.</returns>
-        protected ActionResult ProcessRequest<TRequest>(TRequest request, Action action)
+        protected ActionResult ProcessRequest<TRequest>(
+            TRequest request,
+            Action action,
+            NuciApiAuthorisation authorisation)
             where TRequest : NuciApiRequest
         {
             if (request is null)
@@ -30,6 +34,7 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
+            AuthoriseRequest(authorisation);
             RetrieveHmacTokenFromHeaders(request);
 
             return ExecuteWithStandardHandling(() =>
@@ -46,8 +51,12 @@ namespace NuciAPI.Controllers
         /// <typeparam name="TResponse">The type of the response.</typeparam>
         /// <param name="request">The request object containing the parameters.</param>
         /// <param name="action">The action to execute, which should return a response of type TResponse.</param>
+        /// <param name="authorisation">The authorisation method to use for the request.</param>
         /// <returns>An ActionResult containing the response.</returns>
-        protected ActionResult ProcessRequest<TRequest, TResponse>(TRequest request, Func<TResponse> action)
+        protected ActionResult ProcessRequest<TRequest, TResponse>(
+            TRequest request,
+            Func<TResponse> action,
+            NuciApiAuthorisation authorisation)
             where TRequest : NuciApiRequest
             where TResponse : NuciApiResponse
         {
@@ -56,6 +65,7 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
+            AuthoriseRequest(authorisation);
             RetrieveHmacTokenFromHeaders(request);
 
             return ExecuteWithStandardHandling(() =>
@@ -71,10 +81,31 @@ namespace NuciAPI.Controllers
             });
         }
 
+        protected string GetHeaderValue(string headerName)
+            => Request.Headers[headerName].FirstOrDefault();
+
+        private void AuthoriseRequest(NuciApiAuthorisation authorisation)
+        {
+            if (authorisation is null ||
+                authorisation is NuciApiNoneAuthorisation)
+            {
+                return;
+            }
+
+            string authorisationData = GetHeaderValue("Authorization");
+
+            if (string.IsNullOrEmpty(authorisationData))
+            {
+                throw new AuthenticationException("Missing authorisation data.");
+            }
+
+            authorisation.Authorise(authorisationData);
+        }
+
         private void RetrieveHmacTokenFromHeaders<TRequest>(TRequest request)
             where TRequest : NuciApiRequest
         {
-            string hmacToken = Request.Headers["X-HMAC"].FirstOrDefault();
+            string hmacToken = GetHeaderValue("X-HMAC");
 
             if (!string.IsNullOrEmpty(hmacToken))
             {
@@ -88,7 +119,10 @@ namespace NuciAPI.Controllers
             {
                 return action();
             }
-            catch (SecurityException ex)
+            catch (Exception ex) when (
+                ex is SecurityException ||
+                ex is UnauthorizedAccessException
+            )
             {
                 return Unauthorized(new NuciApiErrorResponse(ex));
             }
