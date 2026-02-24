@@ -78,7 +78,7 @@ namespace NuciAPI.Controllers
 
             if (!string.IsNullOrEmpty(hmacToken))
             {
-                request.HmacToken = hmacToken;
+                request.HmacToken = WebUtility.UrlDecode(hmacToken);
             }
         }
 
