@@ -34,11 +34,11 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            AuthoriseRequest(authorisation);
-            RetrieveHmacTokenFromHeaders(request);
-
             return ExecuteWithStandardHandling(() =>
             {
+                AuthoriseRequest(authorisation);
+                RetrieveHmacTokenFromHeaders(request);
+
                 action();
                 return Ok(NuciApiSuccessResponse.Default);
             });
@@ -65,11 +65,11 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            AuthoriseRequest(authorisation);
-            RetrieveHmacTokenFromHeaders(request);
-
             return ExecuteWithStandardHandling(() =>
             {
+                AuthoriseRequest(authorisation);
+                RetrieveHmacTokenFromHeaders(request);
+
                 TResponse response = action();
 
                 if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
