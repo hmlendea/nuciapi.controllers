@@ -7,10 +7,8 @@ namespace NuciAPI.Controllers
     {
         public string Key { get; } = key;
 
-        public override void Authorise(string authenticationData)
+        protected override void PerformAuthorisation(string apiKey)
         {
-            string apiKey = authenticationData?.Trim();
-
             if (!Key.Equals(apiKey))
             {
                 throw new AuthenticationException("Invalid API key.");

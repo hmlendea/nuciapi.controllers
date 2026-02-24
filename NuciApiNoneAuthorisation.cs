@@ -6,9 +6,9 @@ namespace NuciAPI.Controllers
     {
         internal NuciApiNoneAuthorisation() : base("None") { }
 
-        public override void Authorise(string authenticationData)
+        protected override void PerformAuthorisation(string authorisationData)
         {
-            // No authentication
+            // No authorisation
         }
 
         public bool Equals(NuciApiNoneAuthorisation other)

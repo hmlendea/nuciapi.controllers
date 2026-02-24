@@ -1,4 +1,6 @@
 using System;
+using System.Security.Authentication;
+using System.Text.RegularExpressions;
 
 namespace NuciAPI.Controllers
 {
@@ -10,7 +12,20 @@ namespace NuciAPI.Controllers
 
         public static NuciApiKeyAuthorisation ApiKey(string key) => new(key);
 
-        public abstract void Authorise(string authorisationData);
+        public void Authorise(string authorisationData)
+        {
+            if (string.IsNullOrEmpty(authorisationData))
+            {
+                throw new AuthenticationException("Missing authorisation data.");
+            }
+
+            PerformAuthorisation(Regex.Replace(
+                authorisationData.Trim(),
+                @"^Bearer\s+", "",
+                RegexOptions.IgnoreCase));
+        }
+
+        protected abstract void PerformAuthorisation(string authenticationData);
 
         public bool Equals(NuciApiAuthorisation other)
         {
