@@ -9,6 +9,7 @@ using NuciAPI.Requests;
 using NuciAPI.Responses;
 using NuciDAL.Repositories;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NuciAPI.Controllers
 {
@@ -28,6 +29,8 @@ namespace NuciAPI.Controllers
             {
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
+
+            RetrieveHmacTokenFromHeaders(request);
 
             return ExecuteWithStandardHandling(() =>
             {
@@ -53,6 +56,8 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
+            RetrieveHmacTokenFromHeaders(request);
+
             return ExecuteWithStandardHandling(() =>
             {
                 TResponse response = action();
@@ -64,6 +69,17 @@ namespace NuciAPI.Controllers
 
                 return Ok(response);
             });
+        }
+
+        private void RetrieveHmacTokenFromHeaders<TRequest>(TRequest request)
+            where TRequest : NuciApiRequest
+        {
+            string hmacToken = Request.Headers["X-HMAC"].FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(hmacToken))
+            {
+                request.HmacToken = WebUtility.UrlDecode(hmacToken);
+            }
         }
 
         private ActionResult ExecuteWithStandardHandling(Func<ActionResult> action)
