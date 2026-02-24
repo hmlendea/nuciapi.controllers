@@ -1,8 +1,6 @@
-using System;
-
 namespace NuciAPI.Controllers
 {
-    public class NuciApiNoneAuthorisation : NuciApiAuthorisation, IEquatable<NuciApiNoneAuthorisation>
+    public class NuciApiNoneAuthorisation : NuciApiAuthorisation
     {
         internal NuciApiNoneAuthorisation() : base("None") { }
 
@@ -10,48 +8,5 @@ namespace NuciAPI.Controllers
         {
             // No authorisation
         }
-
-        public bool Equals(NuciApiNoneAuthorisation other)
-            => base.Equals(other);
-
-        public override bool Equals(object obj)
-            => base.Equals(obj);
-
-        public override int GetHashCode()
-            => base.GetHashCode();
-
-        public static bool operator ==(
-            NuciApiNoneAuthorisation current,
-            NuciApiNoneAuthorisation other)
-            => current.Equals(other);
-
-        public static bool operator ==(
-            NuciApiNoneAuthorisation current,
-            NuciApiAuthorisation other)
-            => current.Equals(other);
-
-        public static bool operator ==(
-            NuciApiAuthorisation current,
-            NuciApiNoneAuthorisation other)
-            => other.Equals(current);
-
-        public static bool operator !=(
-            NuciApiNoneAuthorisation current,
-            NuciApiNoneAuthorisation other)
-            => !current.Equals(other);
-
-        public static bool operator !=(
-            NuciApiNoneAuthorisation current,
-            NuciApiAuthorisation other)
-            => !current.Equals(other);
-
-        public static bool operator !=(
-            NuciApiAuthorisation current,
-            NuciApiNoneAuthorisation other)
-            => !other.Equals(current);
-
-        public static implicit operator string(
-            NuciApiNoneAuthorisation authorisationmethod)
-            => authorisationmethod.ToString();
     }
 }
