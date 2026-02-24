@@ -10,6 +10,7 @@ using NuciAPI.Responses;
 using NuciDAL.Repositories;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace NuciAPI.Controllers
 {
@@ -86,20 +87,12 @@ namespace NuciAPI.Controllers
 
         private void AuthoriseRequest(NuciApiAuthorisation authorisation)
         {
-            if (authorisation is null ||
-                authorisation is NuciApiNoneAuthorisation)
+            if (authorisation is null)
             {
-                return;
+                throw new NotImplementedException("This endpoint has no authorisation specified.");
             }
 
-            string authorisationData = GetHeaderValue("Authorization");
-
-            if (string.IsNullOrEmpty(authorisationData))
-            {
-                throw new AuthenticationException("Missing authorisation data.");
-            }
-
-            authorisation.Authorise(authorisationData);
+            authorisation.Authorise(GetHeaderValue("Authorization"));
         }
 
         private void RetrieveHmacTokenFromHeaders<TRequest>(TRequest request)
@@ -141,6 +134,10 @@ namespace NuciAPI.Controllers
             catch (TimeoutException)
             {
                 return StatusCode((int)HttpStatusCode.GatewayTimeout, new NuciApiErrorResponse("The request has timed out."));
+            }
+            catch (NotImplementedException ex)
+            {
+                return StatusCode((int)HttpStatusCode.NotImplemented, new NuciApiErrorResponse(ex.Message ?? "This endpoint has not been implemented."));
             }
             catch (Exception ex)
             {

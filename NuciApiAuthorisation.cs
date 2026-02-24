@@ -13,6 +13,11 @@ namespace NuciAPI.Controllers
 
         public void Authorise(string authorisationData)
         {
+            if (Name.Equals(None.Name))
+            {
+                return;
+            }
+
             if (string.IsNullOrEmpty(authorisationData))
             {
                 throw new AuthenticationException("Missing authorisation data.");
