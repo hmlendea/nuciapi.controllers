@@ -1,16 +1,11 @@
 using System;
-using System.Security;
-using System.Security.Authentication;
 using System.Net;
 
 using Microsoft.AspNetCore.Mvc;
 
 using NuciAPI.Requests;
 using NuciAPI.Responses;
-using NuciDAL.Repositories;
-using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace NuciAPI.Controllers
 {
@@ -35,14 +30,11 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            return ExecuteWithStandardHandling(() =>
-            {
-                AuthoriseRequest(authorisation);
-                RetrieveHmacTokenFromHeaders(request);
+            AuthoriseRequest(authorisation);
+            RetrieveHmacTokenFromHeaders(request);
 
-                action();
-                return Ok(NuciApiSuccessResponse.Default);
-            });
+            action();
+            return Ok(NuciApiSuccessResponse.Default);
         }
 
         /// <summary>
@@ -66,20 +58,17 @@ namespace NuciAPI.Controllers
                 return BadRequest(NuciApiErrorResponse.InvalidRequest);
             }
 
-            return ExecuteWithStandardHandling(() =>
+            AuthoriseRequest(authorisation);
+            RetrieveHmacTokenFromHeaders(request);
+
+            TResponse response = action();
+
+            if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
             {
-                AuthoriseRequest(authorisation);
-                RetrieveHmacTokenFromHeaders(request);
+                return NotFound("Resource not found.");
+            }
 
-                TResponse response = action();
-
-                if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
-                {
-                    return NotFound("Resource not found.");
-                }
-
-                return Ok(response);
-            });
+            return Ok(response);
         }
 
         protected string GetHeaderValue(string headerName)
@@ -103,45 +92,6 @@ namespace NuciAPI.Controllers
             if (!string.IsNullOrEmpty(hmacToken))
             {
                 request.HmacToken = WebUtility.UrlDecode(hmacToken);
-            }
-        }
-
-        private ActionResult ExecuteWithStandardHandling(Func<ActionResult> action)
-        {
-            try
-            {
-                return action();
-            }
-            catch (Exception ex) when (
-                ex is SecurityException ||
-                ex is UnauthorizedAccessException
-            )
-            {
-                return Unauthorized(new NuciApiErrorResponse(ex));
-            }
-            catch (AuthenticationException ex)
-            {
-                return StatusCode((int)HttpStatusCode.Forbidden, new NuciApiErrorResponse(ex));
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound(NuciApiErrorResponse.NotFound);
-            }
-            catch (DuplicateEntityException)
-            {
-                return Conflict(NuciApiErrorResponse.AlreadyExists);
-            }
-            catch (TimeoutException)
-            {
-                return StatusCode((int)HttpStatusCode.GatewayTimeout, new NuciApiErrorResponse("The request has timed out."));
-            }
-            catch (NotImplementedException ex)
-            {
-                return StatusCode((int)HttpStatusCode.NotImplemented, new NuciApiErrorResponse(ex.Message ?? "This endpoint has not been implemented."));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new NuciApiErrorResponse(ex));
             }
         }
     }
