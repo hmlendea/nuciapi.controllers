@@ -92,7 +92,7 @@ namespace NuciAPI.Controllers
 
             if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
             {
-                return NotFound("Resource not found.");
+                return NotFound(NuciApiErrorResponse.NotFound);
             }
 
             return Ok(response);
@@ -126,7 +126,7 @@ namespace NuciAPI.Controllers
 
             if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
             {
-                return NotFound("Resource not found.");
+                return NotFound(NuciApiErrorResponse.NotFound);
             }
 
             return Ok(response);
