@@ -60,7 +60,7 @@ namespace NuciAPI.Controllers
             AuthoriseRequest(authorisation);
             RetrieveHmacTokenFromHeaders(request);
 
-            await action();
+            await action().ConfigureAwait(false);
             return Ok(NuciApiSuccessResponse.Default);
         }
 
@@ -122,7 +122,7 @@ namespace NuciAPI.Controllers
             AuthoriseRequest(authorisation);
             RetrieveHmacTokenFromHeaders(request);
 
-            TResponse response = await action();
+            TResponse response = await action().ConfigureAwait(false);
 
             if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
             {
