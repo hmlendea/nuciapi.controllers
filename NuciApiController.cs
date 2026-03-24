@@ -43,7 +43,7 @@ namespace NuciAPI.Controllers
         /// </summary>
         /// <typeparam name="TRequest">The type of the request.</typeparam>
         /// <param name="request">The request object containing the parameters.</param>
-        /// <param name="action">The action to execute.</param>
+        /// <param name="action">The asynchronous action to execute.</param>
         /// <param name="authorisation">The authorisation method to use for the request.</param>
         /// <returns>An ActionResult containing the response.</returns>
         protected async Task<ActionResult> ProcessRequestAsync<TRequest>(
@@ -104,7 +104,7 @@ namespace NuciAPI.Controllers
         /// <typeparam name="TRequest">The type of the request.</typeparam>
         /// <typeparam name="TResponse">The type of the response.</typeparam>
         /// <param name="request">The request object containing the parameters.</param>
-        /// <param name="action">The action to execute, which should return a response of type TResponse.</param>
+        /// <param name="action">The asynchronous action to execute, which should return a response of type TResponse.</param>
         /// <param name="authorisation">The authorisation method to use for the request.</param>
         /// <returns>An ActionResult containing the response.</returns>
         protected async Task<ActionResult> ProcessRequest<TRequest, TResponse>(
