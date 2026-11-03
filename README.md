@@ -12,6 +12,7 @@ NuciAPI.Controllers provides base controller classes and authorisation abstracti
 - [Privacy and Data](#-privacy-and-data)
 - [Security](#-security)
 - [Contributing](#-contributing)
+- [Architecture](#-architecture)
 - [License](#-license)
 
 ## 📦 Installation
@@ -83,6 +84,10 @@ See the [contributing guidelines](./CONTRIBUTING.md) for details on how to repor
 ## 🔒 Security
 
 NuciAPI.Controllers follows a coordinated disclosure policy. Supported versions receive security maintenance via NuGet and GitHub Releases. For information on reporting security vulnerabilities, see [SECURITY.md](./SECURITY.md).
+
+## 🏗️ Architecture
+
+NuciAPI.Controllers is a .NET 10.0 library providing abstract base controllers and pluggable authorisation strategies for ASP.NET Core REST APIs. It uses the Strategy pattern for authorisation, has no runtime of its own, and executes entirely within the consumer's request pipeline. Key boundaries: public contract layer (`NuciApiController`, `NuciApiAuthorisation` factories) and implementation layer (concrete strategies, HMAC parsing). Dependencies: `Microsoft.AspNetCore.App` (framework reference), `NuciAPI 3.5.1` (package reference). For the detailed architecture, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## 📄 License
 
