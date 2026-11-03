@@ -10,6 +10,7 @@ NuciAPI.Controllers provides base controller classes and authorisation abstracti
 - [Capabilities](#-capabilities)
 - [Usage](#-usage)
 - [Privacy and Data](#-privacy-and-data)
+- [Security](#-security)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -72,6 +73,10 @@ When doing so, please:
 - Properly test all modifications, including edge cases and error conditions
 - Include tests for additional or modified functionality
 - Raise a new [issue](https://github.com/hmlendea/nuciapi.controllers/issues) for problems or suggestions
+
+## 🔒 Security
+
+NuciAPI.Controllers follows a coordinated disclosure policy. Supported versions receive security maintenance via NuGet and GitHub Releases. For information on reporting security vulnerabilities, see [SECURITY.md](./SECURITY.md).
 
 ## 📄 License
 
