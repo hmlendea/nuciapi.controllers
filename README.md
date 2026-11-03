@@ -74,6 +74,8 @@ When doing so, please:
 - Include tests for additional or modified functionality
 - Raise a new [issue](https://github.com/hmlendea/nuciapi.controllers/issues) for problems or suggestions
 
+See the [contributing guidelines](./CONTRIBUTING.md) for details on how to report issues, suggest enhancements, and submit changes.
+
 ## 🔒 Security
 
 NuciAPI.Controllers follows a coordinated disclosure policy. Supported versions receive security maintenance via NuGet and GitHub Releases. For information on reporting security vulnerabilities, see [SECURITY.md](./SECURITY.md).
