@@ -8,10 +8,10 @@ This document specifies the exact behavioural contract for request processing in
 
 ### B-RP-001: Null Request Handling
 
-**Given** a controller action calls `ProcessRequest(null, action, auth)`  
-**When** the request parameter is null  
-**Then** the method returns `BadRequest(NuciApiErrorResponse.InvalidRequest)`  
-**And** the action delegate is never invoked  
+**Given** a controller action calls `ProcessRequest(null, action, auth)`
+**When** the request parameter is null
+**Then** the method returns `BadRequest(NuciApiErrorResponse.InvalidRequest)`
+**And** the action delegate is never invoked
 **And** authorisation is never checked
 
 ```csharp
@@ -21,7 +21,7 @@ public void NullRequest_Returns400_ActionNotInvoked()
 {
     var invoked = false;
     var result = controller.ProcessRequest(null, () => invoked = true, auth);
-    
+
     Assert.IsInstanceOf<BadRequestObjectResult>(result);
     Assert.IsFalse(invoked);
 }
@@ -29,9 +29,9 @@ public void NullRequest_Returns400_ActionNotInvoked()
 
 ### B-RP-002: Null Authorisation Handling
 
-**Given** a controller action calls `ProcessRequest(request, action, null)`  
-**When** the authorisation parameter is null  
-**Then** the method throws `NotImplementedException` with message "This endpoint has no authorisation specified."  
+**Given** a controller action calls `ProcessRequest(request, action, null)`
+**When** the authorisation parameter is null
+**Then** the method throws `NotImplementedException` with message "This endpoint has no authorisation specified."
 **And** the action delegate is never invoked
 
 ```csharp
@@ -41,17 +41,17 @@ public void NullAuthorisation_ThrowsNotImplementedException()
 {
     var ex = Assert.Throws<NotImplementedException>(() =>
         controller.ProcessRequest(request, () => { }, null));
-    
+
     Assert.AreEqual("This endpoint has no authorisation specified.", ex.Message);
 }
 ```
 
 ### B-RP-003: Authorisation Failure
 
-**Given** a controller action calls `ProcessRequest(request, action, auth)`  
-**When** `auth.Authorise(Request)` throws `AuthenticationException`  
-**Then** the exception propagates out of `ProcessRequest`  
-**And** the action delegate is never invoked  
+**Given** a controller action calls `ProcessRequest(request, action, auth)`
+**When** `auth.Authorise(Request)` throws `AuthenticationException`
+**Then** the exception propagates out of `ProcessRequest`
+**And** the action delegate is never invoked
 **And** the exception message is preserved
 
 ```csharp
@@ -61,10 +61,10 @@ public void AuthorisationFailure_PropagatesException_ActionNotInvoked()
 {
     var auth = new FailingAuthorisation();
     var invoked = false;
-    
+
     var ex = Assert.Throws<AuthenticationException>(() =>
         controller.ProcessRequest(request, () => invoked = true, auth));
-    
+
     Assert.IsFalse(invoked);
     Assert.AreEqual("Invalid API key.", ex.Message);
 }
@@ -72,9 +72,9 @@ public void AuthorisationFailure_PropagatesException_ActionNotInvoked()
 
 ### B-RP-004: Successful Authorisation
 
-**Given** a controller action calls `ProcessRequest(request, action, auth)`  
-**When** `auth.Authorise(Request)` completes without exception  
-**Then** the action delegate is invoked exactly once  
+**Given** a controller action calls `ProcessRequest(request, action, auth)`
+**When** `auth.Authorise(Request)` completes without exception
+**Then** the action delegate is invoked exactly once
 **And** the result of the action determines the response
 
 ```csharp
@@ -84,17 +84,17 @@ public void SuccessfulAuthorisation_InvokesActionOnce()
 {
     var auth = NuciApiAuthorisation.None;
     var invokeCount = 0;
-    
+
     controller.ProcessRequest(request, () => invokeCount++, auth);
-    
+
     Assert.AreEqual(1, invokeCount);
 }
 ```
 
 ### B-RP-005: Action Returns Value (Non-GET)
 
-**Given** `ProcessRequest<TRequest, TResponse>` is called with non-GET method  
-**When** the action returns a non-null `TResponse`  
+**Given** `ProcessRequest<TRequest, TResponse>` is called with non-GET method
+**When** the action returns a non-null `TResponse`
 **Then** the method returns `Ok(response)` (200)
 
 ```csharp
@@ -106,9 +106,9 @@ public void PostAction_ReturnsValue_Returns200()
     {
         HttpContext = new DefaultHttpContext { Request = { Method = "POST" } }
     };
-    
+
     var result = controller.ProcessRequest(request, () => new Response { Id = 1 }, auth);
-    
+
     Assert.IsInstanceOf<OkObjectResult>(result);
     Assert.AreEqual(1, ((Response)((OkObjectResult)result).Value).Id);
 }
@@ -116,8 +116,8 @@ public void PostAction_ReturnsValue_Returns200()
 
 ### B-RP-006: Action Returns Value (GET)
 
-**Given** `ProcessRequest<TRequest, TResponse>` is called with GET method  
-**When** the action returns a non-null `TResponse`  
+**Given** `ProcessRequest<TRequest, TResponse>` is called with GET method
+**When** the action returns a non-null `TResponse`
 **Then** the method returns `Ok(response)` (200)
 
 ```csharp
@@ -129,17 +129,17 @@ public void GetAction_ReturnsValue_Returns200()
     {
         HttpContext = new DefaultHttpContext { Request = { Method = "GET" } }
     };
-    
+
     var result = controller.ProcessRequest(request, () => new Response { Id = 1 }, auth);
-    
+
     Assert.IsInstanceOf<OkObjectResult>(result);
 }
 ```
 
 ### B-RP-007: Action Returns Null (GET)
 
-**Given** `ProcessRequest<TRequest, TResponse>` is called with GET method  
-**When** the action returns null  
+**Given** `ProcessRequest<TRequest, TResponse>` is called with GET method
+**When** the action returns null
 **Then** the method returns `NotFound(NuciApiErrorResponse.NotFound)` (404)
 
 ```csharp
@@ -151,9 +151,9 @@ public void GetAction_ReturnsNull_Returns404()
     {
         HttpContext = new DefaultHttpContext { Request = { Method = "GET" } }
     };
-    
+
     var result = controller.ProcessRequest(request, () => (Response?)null, auth);
-    
+
     Assert.IsInstanceOf<NotFoundObjectResult>(result);
     var error = (NuciApiErrorResponse)((NotFoundObjectResult)result).Value;
     Assert.AreEqual(NuciApiErrorResponse.NotFound, error);
@@ -162,8 +162,8 @@ public void GetAction_ReturnsNull_Returns404()
 
 ### B-RP-008: Action Returns Null (Non-GET)
 
-**Given** `ProcessRequest<TRequest, TResponse>` is called with non-GET method  
-**When** the action returns null  
+**Given** `ProcessRequest<TRequest, TResponse>` is called with non-GET method
+**When** the action returns null
 **Then** the method returns `Ok(null)` (200 with null body)
 
 ```csharp
@@ -175,9 +175,9 @@ public void PostAction_ReturnsNull_Returns200WithNull()
     {
         HttpContext = new DefaultHttpContext { Request = { Method = "POST" } }
     };
-    
+
     var result = controller.ProcessRequest(request, () => (Response?)null, auth);
-    
+
     Assert.IsInstanceOf<OkObjectResult>(result);
     Assert.IsNull(((OkObjectResult)result).Value);
 }
@@ -185,9 +185,9 @@ public void PostAction_ReturnsNull_Returns200WithNull()
 
 ### B-RP-009: Action Throws Exception
 
-**Given** `ProcessRequest` is called  
-**When** the action delegate throws an exception  
-**Then** the exception propagates out of `ProcessRequest`  
+**Given** `ProcessRequest` is called
+**When** the action delegate throws an exception
+**Then** the exception propagates out of `ProcessRequest`
 **And** no response wrapping occurs
 
 ```csharp
@@ -197,16 +197,16 @@ public void ActionThrows_ExceptionPropagates()
 {
     var ex = Assert.Throws<InvalidOperationException>(() =>
         controller.ProcessRequest(request, () => throw new InvalidOperationException("fail"), auth));
-    
+
     Assert.AreEqual("fail", ex.Message);
 }
 ```
 
 ### B-RP-010: Async Overload Behaviour
 
-**Given** `ProcessRequestAsync` is called  
-**When** the async action delegate is awaited  
-**Then** all synchronous behaviours (B-RP-001 through B-RP-009) apply identically  
+**Given** `ProcessRequestAsync` is called
+**When** the async action delegate is awaited
+**Then** all synchronous behaviours (B-RP-001 through B-RP-009) apply identically
 **And** `ConfigureAwait(false)` is used on the await
 
 ```csharp
@@ -215,19 +215,19 @@ public void ActionThrows_ExceptionPropagates()
 public async Task Async_NullRequest_Returns400()
 {
     var result = await controller.ProcessRequestAsync(null, () => Task.CompletedTask, auth);
-    
+
     Assert.IsInstanceOf<BadRequestObjectResult>(result);
 }
 ```
 
 ### B-RP-011: HMAC Token Extraction
 
-**Given** `GetHmacToken()` is called  
-**When** the `X-HMAC` header is present  
-**Then** the header value is returned as string  
-**When** the `X-HMAC` header is absent  
-**Then** null is returned  
-**When** multiple `X-HMAC` headers exist  
+**Given** `GetHmacToken()` is called
+**When** the `X-HMAC` header is present
+**Then** the header value is returned as string
+**When** the `X-HMAC` header is absent
+**Then** null is returned
+**When** multiple `X-HMAC` headers exist
 **Then** the first value is returned
 
 ```csharp
@@ -236,9 +236,9 @@ public async Task Async_NullRequest_Returns400()
 public void GetHmacToken_HeaderPresent_ReturnsValue()
 {
     controller.Request.Headers["X-HMAC"] = "signature123";
-    
+
     var token = controller.GetHmacToken();
-    
+
     Assert.AreEqual("signature123", token);
 }
 
@@ -246,16 +246,16 @@ public void GetHmacToken_HeaderPresent_ReturnsValue()
 public void GetHmacToken_HeaderAbsent_ReturnsNull()
 {
     var token = controller.GetHmacToken();
-    
+
     Assert.IsNull(token);
 }
 ```
 
 ### B-RP-012: AuthoriseRequest Delegation
 
-**Given** `AuthoriseRequest(auth)` is called  
-**When** auth is not null  
-**Then** `auth.Authorise(Request)` is called exactly once  
+**Given** `AuthoriseRequest(auth)` is called
+**When** auth is not null
+**Then** `auth.Authorise(Request)` is called exactly once
 **And** the returned task is returned
 
 ```csharp
@@ -264,9 +264,9 @@ public void GetHmacToken_HeaderAbsent_ReturnsNull()
 public void AuthoriseRequest_CallsAuthorisationAuthorise()
 {
     var auth = new TrackingAuthorisation();
-    
+
     controller.AuthoriseRequest(auth);
-    
+
     Assert.AreEqual(1, auth.AuthoriseCallCount);
 }
 ```
@@ -292,26 +292,26 @@ public void AuthoriseRequest_CallsAuthorisationAuthorise()
 
 ### E-RP-001: Request Method Null
 
-**Given** `Request.Method` is null  
-**When** `ProcessRequest<TRequest, TResponse>` evaluates null response  
+**Given** `Request.Method` is null
+**When** `ProcessRequest<TRequest, TResponse>` evaluates null response
 **Then** treats as non-GET (returns 200 for null)
 
 ### E-RP-002: Custom HTTP Method
 
-**Given** `Request.Method` is "PATCH" (or any non-GET)  
-**When** action returns null  
+**Given** `Request.Method` is "PATCH" (or any non-GET)
+**When** action returns null
 **Then** returns 200 OK with null body
 
 ### E-RP-003: Action Returns Task<T> (Wrong Overload)
 
-**Given** consumer passes `Func<Task<TResponse>>` to sync `ProcessRequest<TRequest, TResponse>`  
-**When** compiled  
+**Given** consumer passes `Func<Task<TResponse>>` to sync `ProcessRequest<TRequest, TResponse>`
+**When** compiled
 **Then** compiler error (type mismatch)
 
 ### E-RP-004: Generic Type Inference
 
-**Given** `ProcessRequest(request, () => new Response(), auth)`  
-**When** called without explicit type args  
+**Given** `ProcessRequest(request, () => new Response(), auth)`
+**When** called without explicit type args
 **Then** compiler infers `TRequest` from request, `TResponse` from lambda return
 
 ## Versioning

@@ -20,9 +20,9 @@ sequenceDiagram
     else auth not null
         AuthBase->>AuthBase: GetHeaderValue("Authorization")
         AuthBase->>AuthBase: auth.Authorise(headerValue)
-        
+
         Note over AuthBase: NuciApiAuthorisation.Authorise implementation
-        
+
         AuthBase->>AuthBase: auth.Name == "None"?
         alt Name == "None"
             AuthBase-->>Base: Return (success)
@@ -34,7 +34,7 @@ sequenceDiagram
             else Present
                 AuthBase->>AuthBase: Regex.Replace(header, "^Bearer\\s+", "", IgnoreCase)
                 AuthBase->>AuthStrategy: PerformAuthorisation(strippedToken)
-                
+
                 alt NuciApiKeyAuthorisation
                     AuthStrategy->>AuthStrategy: Key.Equals(token)?
                     alt Match

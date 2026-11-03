@@ -192,7 +192,7 @@ public class UserService : IUserService
         await Task.Yield(); // Simulate async
         var user = _users.FirstOrDefault(u => u.Id == id);
         if (user == null) throw new KeyNotFoundException("User not found");
-        
+
         if (request.DisplayName != null) user.DisplayName = request.DisplayName;
         return user;
     }

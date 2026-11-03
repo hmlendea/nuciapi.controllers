@@ -42,8 +42,8 @@ app.Use(async (context, next) =>
 _logger.LogInformation("Expected: {Expected}, Provided: {Provided}",
     MaskKey(expectedKey), MaskKey(providedKey));
 
-string MaskKey(string key) => key.Length > 8 
-    ? key[..4] + "****" + key[^4..] 
+string MaskKey(string key) => key.Length > 8
+    ? key[..4] + "****" + key[^4..]
     : "****";
 ```
 
@@ -164,15 +164,15 @@ builder.Services.AddScoped<NuciApiAuthorisation>(sp =>
 app.Use(async (context, next) =>
 {
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-    
-    logger.LogInformation("Request: {Method} {Path}", 
+
+    logger.LogInformation("Request: {Method} {Path}",
         context.Request.Method, context.Request.Path);
-    
-    logger.LogDebug("Headers: {Headers}", 
+
+    logger.LogDebug("Headers: {Headers}",
         context.Request.Headers
             .Where(h => h.Key.StartsWith("Authorization") || h.Key.StartsWith("X-"))
             .ToDictionary(h => h.Key, h => h.Value.ToString()));
-    
+
     if (context.Request.ContentLength > 0 && context.Request.ContentLength < 10000)
     {
         context.Request.EnableBuffering();
@@ -180,9 +180,9 @@ app.Use(async (context, next) =>
         context.Request.Body.Position = 0;
         logger.LogDebug("Body: {Body}", body);
     }
-    
+
     await next();
-    
+
     logger.LogInformation("Response: {StatusCode}", context.Response.StatusCode);
 });
 ```
@@ -193,12 +193,12 @@ app.Use(async (context, next) =>
 // Middleware
 app.Use(async (context, next) =>
 {
-    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() 
+    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault()
         ?? context.TraceIdentifier;
-    
+
     context.Items["CorrelationId"] = correlationId;
     context.Response.Headers["X-Correlation-ID"] = correlationId;
-    
+
     using (LogContext.PushProperty("CorrelationId", correlationId))
     {
         await next();
@@ -235,7 +235,7 @@ _logger.LogInformation("Processing request"); // Auto-includes CorrelationId
 // Use async all the way
 public async Task<ActionResult> Get()
 {
-    return await ProcessRequestAsync(req, async () => 
+    return await ProcessRequestAsync(req, async () =>
     {
         var data = await _repo.GetAsync(id); // Async!
         return data;

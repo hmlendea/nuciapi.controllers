@@ -16,10 +16,10 @@ public abstract class NuciApiController : ControllerBase
     protected ActionResult ProcessRequest<TRequest, TResponse>(TRequest request, Func<TResponse> action, NuciApiAuthorisation authorisation);
     protected Task<ActionResult> ProcessRequestAsync<TRequest>(TRequest request, Func<Task> action, NuciApiAuthorisation authorisation);
     protected Task<ActionResult> ProcessRequestAsync<TRequest, TResponse>(TRequest request, Func<Task<TResponse>> action, NuciApiAuthorisation authorisation);
-    
+
     // HMAC extraction
     protected string? GetHmacToken();
-    
+
     // Authorisation helper
     protected Task AuthoriseRequest(NuciApiAuthorisation authorisation);
 }
@@ -33,10 +33,10 @@ public abstract class NuciApiAuthorisation
     // Factory methods
     public static NuciApiNoneAuthorisation None { get; }
     public static NuciApiKeyAuthorisation ApiKey(string key);
-    
+
     // Abstract authorisation method
     public abstract Task Authorise(HttpRequest request);
-    
+
     // Protected implementation
     protected abstract Task PerformAuthorisation(HttpRequest request);
 }
@@ -48,9 +48,9 @@ public abstract class NuciApiAuthorisation
 public sealed class NuciApiKeyAuthorisation : NuciApiAuthorisation
 {
     public string Key { get; } // Readonly, set via constructor
-    
+
     public NuciApiKeyAuthorisation(string key);
-    
+
     protected override Task PerformAuthorisation(HttpRequest request);
 }
 ```
@@ -61,9 +61,9 @@ public sealed class NuciApiKeyAuthorisation : NuciApiAuthorisation
 public sealed class NuciApiNoneAuthorisation : NuciApiAuthorisation
 {
     public static readonly NuciApiNoneAuthorisation None = new();
-    
+
     private NuciApiNoneAuthorisation() { }
-    
+
     protected override Task PerformAuthorisation(HttpRequest request)
         => Task.CompletedTask;
 }
@@ -79,7 +79,7 @@ public class NuciApiErrorResponse
 {
     public string Error { get; }
     public string Message { get; }
-    
+
     public static NuciApiErrorResponse InvalidRequest { get; }
     public static NuciApiErrorResponse NotFound { get; }
 }
@@ -105,11 +105,11 @@ public class CreateUserRequest : ApiRequest
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
-    
+
     [Required]
     [MinLength(12)]
     public string Password { get; set; } = string.Empty;
-    
+
     [StringLength(100)]
     public string? DisplayName { get; set; }
 }
@@ -214,13 +214,13 @@ public class UpdateProfileRequest
     [Required]
     [StringLength(100, MinimumLength = 2)]
     public string DisplayName { get; set; } = string.Empty;
-    
+
     [EmailAddress]
     public string? Email { get; set; }
-    
+
     [Phone]
     public string? PhoneNumber { get; set; }
-    
+
     [Url]
     public string? Website { get; set; }
 }
@@ -238,7 +238,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .EmailAddress().WithMessage("Invalid email format")
             .MustAsync(async (email, ct) => !await userService.ExistsAsync(email))
             .WithMessage("Email already registered");
-            
+
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required")
             .MinimumLength(12).WithMessage("Password must be at least 12 characters")
@@ -262,7 +262,7 @@ public class UserProfile : Profile
         CreateMap<CreateUserRequest, User>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
             .ForMember(d => d.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
-            
+
         CreateMap<User, UserData>();
         CreateMap<User, UserResponse>()
             .ForMember(d => d.Data, opt => opt.MapFrom(src => src));

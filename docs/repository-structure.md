@@ -136,18 +136,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.0.x'
-        
+
     - name: Restore
       run: dotnet restore NuciAPI.Controllers.slnx
-      
+
     - name: Build
       run: dotnet build NuciAPI.Controllers.slnx --configuration Release --no-restore
-      
+
     - name: Test
       run: dotnet test NuciAPI.Controllers.slnx --configuration Release --no-build --verbosity normal
 ```

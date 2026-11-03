@@ -24,7 +24,7 @@ builder.Services.AddSingleton<NuciApiAuthorisation>(sp =>
 
 **Test:** Add temporary endpoint
 ```csharp
-app.MapGet("/debug/auth", (NuciApiAuthorisation auth) => 
+app.MapGet("/debug/auth", (NuciApiAuthorisation auth) =>
     Results.Ok(new { Type = auth.GetType().Name }));
 ```
 
@@ -35,7 +35,7 @@ app.MapGet("/debug/auth", (NuciApiAuthorisation auth) =>
 app.Use(async (context, next) =>
 {
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Auth Header: {Auth}", 
+    logger.LogInformation("Auth Header: {Auth}",
         context.Request.Headers.Authorization);
     await next();
 });
@@ -139,7 +139,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
-    
+
     // Include XML comments
     var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var path = Path.Combine(AppContext.BaseDirectory, xml);
@@ -170,12 +170,12 @@ builder.Services.AddLogging(logging =>
 // Middleware (early in pipeline)
 app.Use(async (context, next) =>
 {
-    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() 
+    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault()
         ?? context.TraceIdentifier;
-    
+
     context.Items["CorrelationId"] = correlationId;
     context.Response.Headers["X-Correlation-ID"] = correlationId;
-    
+
     using (Serilog.Context.LogContext.PushProperty("CorrelationId", correlationId))
     {
         await next();

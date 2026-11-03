@@ -16,7 +16,7 @@ sequenceDiagram
     Base->>Base: RetrieveHmacTokenFromHeaders(request)
     Base->>Request: GetHeaderValue("X-HMAC")
     Request-->>Base: headerValue (string or null)
-    
+
     alt headerValue null or empty
         Base->>DTO: No assignment (HmacToken remains null)
     else headerValue present
@@ -120,14 +120,14 @@ public ActionResult SecureEndpoint(SecureRequest request)
 
 ```csharp
 protected override ActionResult ProcessRequest<TRequest, TResponse>(
-    TRequest request, 
-    Func<TResponse> action, 
+    TRequest request,
+    Func<TResponse> action,
     NuciApiAuthorisation authorisation)
 {
     // Pre-processing: validate HMAC
     if (!ValidateHmac(request.HmacToken, request))
         return Unauthorized();
-    
+
     return base.ProcessRequest(request, action, authorisation);
 }
 ```

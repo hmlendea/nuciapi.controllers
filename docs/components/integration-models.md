@@ -22,11 +22,11 @@ public class CreateUserRequest : ApiRequest
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
-    
+
     [Required]
     [MinLength(8)]
     public string Password { get; set; } = string.Empty;
-    
+
     public string? DisplayName { get; set; }
 }
 ```
@@ -104,7 +104,7 @@ public class ValidationErrorResponse : ApiResponse
     {
         Error = new ApiError { Code = "InvalidRequest", Message = "The request was invalid." };
     }
-    
+
     public List<ValidationError> ValidationErrors { get; set; } = new();
 }
 
@@ -304,7 +304,7 @@ public class VersionedRequest
 {
     [FromHeader(Name = "Accept")]
     public string? AcceptHeader { get; set; }
-    
+
     public int GetVersion()
     {
         if (string.IsNullOrEmpty(AcceptHeader)) return 1;
@@ -336,11 +336,11 @@ public class CreateOrderRequest : ApiRequest
     [Required]
     [Range(1, int.MaxValue)]
     public int CustomerId { get; set; }
-    
+
     [Required]
     [MinLength(1)]
     public List<OrderItemRequest> Items { get; set; } = new();
-    
+
     [CreditCard]
     public string? PaymentToken { get; set; }
 }
@@ -349,7 +349,7 @@ public class OrderItemRequest
 {
     [Required]
     public Guid ProductId { get; set; }
-    
+
     [Range(1, 1000)]
     public int Quantity { get; set; }
 }
@@ -410,7 +410,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
-    
+
     // API Key auth
     c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
     {
@@ -419,7 +419,7 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         Description = "API Key: Bearer {key}"
     });
-    
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {

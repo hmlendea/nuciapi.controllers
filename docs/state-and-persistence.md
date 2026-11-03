@@ -41,10 +41,10 @@ public class MyController : NuciApiController
         var items = HttpContext.Items; // Per-request dictionary
         var session = HttpContext.Session; // If configured
         var features = HttpContext.Features;
-        
+
         // Correlation ID from middleware
         var correlationId = HttpContext.TraceIdentifier;
-        
+
         return ProcessRequest(new Request(), () => { ... }, auth);
     }
 }
@@ -76,7 +76,7 @@ public class AppDbContext : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<ApiKey> ApiKeys { get; set; }
-    
+
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         options.UseNpgsql(connectionString);
@@ -91,9 +91,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 public class UserService
 {
     private readonly AppDbContext _db;
-    
+
     public UserService(AppDbContext db) => _db = db;
-    
+
     public async Task<User> CreateAsync(CreateUserRequest request)
     {
         var user = new User { Email = request.Email, ... };
@@ -118,16 +118,16 @@ builder.Services.AddStackExchangeRedisCache(options =>
 public class RateLimitService
 {
     private readonly IDistributedCache _cache;
-    
+
     public RateLimitService(IDistributedCache cache) => _cache = cache;
-    
+
     public async Task<bool> CheckLimitAsync(string key, int limit, TimeSpan window)
     {
         var current = await _cache.GetStringAsync(key);
         var count = int.TryParse(current, out var c) ? c : 0;
-        
+
         if (count >= limit) return false;
-        
+
         await _cache.SetStringAsync(key, (count + 1).ToString(), new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = window
@@ -147,11 +147,11 @@ builder.Services.AddMemoryCache();
 public class TokenCache
 {
     private readonly IMemoryCache _cache;
-    
+
     public TokenCache(IMemoryCache cache) => _cache = cache;
-    
+
     public string? GetToken(string key) => _cache.Get<string>(key);
-    
+
     public void SetToken(string key, string token, TimeSpan ttl)
     {
         _cache.Set(key, token, new MemoryCacheEntryOptions
@@ -186,25 +186,25 @@ public class ApiKey
 public class ApiKeyValidator
 {
     private readonly AppDbContext _db;
-    
+
     public ApiKeyValidator(AppDbContext db) => _db = db;
-    
+
     public async Task<bool> ValidateAsync(string providedKey)
     {
         // Hash the provided key
         var hash = HashKey(providedKey);
-        
+
         // Lookup
         var apiKey = await _db.ApiKeys
             .FirstOrDefaultAsync(k => k.KeyHash == hash && k.IsActive);
-            
+
         if (apiKey == null) return false;
         if (apiKey.ExpiresAt < DateTime.UtcNow) return false;
-        
+
         // Update last used
         apiKey.LastUsedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
-        
+
         return true;
     }
 }
@@ -229,23 +229,23 @@ public class HmacCredential
 public class HmacValidator
 {
     private readonly AppDbContext _db;
-    
+
     public async Task<bool> ValidateAsync(string keyId, string payload, string signature, string timestamp)
     {
         var cred = await _db.HmacCredentials
             .FirstOrDefaultAsync(c => c.KeyId == keyId && c.IsActive);
-            
+
         if (cred == null) return false;
-        
+
         // Verify timestamp
         if (!long.TryParse(timestamp, out var ts) ||
             Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - ts) > 300)
             return false;
-        
+
         // Verify signature
         var secret = GetSecret(cred); // From secure store
         var expected = ComputeHmac(cred.Algorithm, secret, payload, timestamp);
-        
+
         return CryptographicOperations.FixedTimeEquals(
             Convert.FromBase64String(signature), expected);
     }
@@ -277,7 +277,7 @@ public class SessionController : NuciApiController
         HttpContext.Session.SetString(key, value);
         return Ok();
     }
-    
+
     public ActionResult Get(string key)
     {
         var value = HttpContext.Session.GetString(key);
@@ -303,28 +303,28 @@ public interface IUserRepository
 public class EfUserRepository : IUserRepository
 {
     private readonly AppDbContext _db;
-    
+
     public EfUserRepository(AppDbContext db) => _db = db;
-    
+
     public async Task<User?> GetByIdAsync(Guid id)
         => await _db.Users.FindAsync(id);
-        
+
     public async Task<User?> GetByEmailAsync(string email)
         => await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
-        
+
     public async Task<User> AddAsync(User user)
     {
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
         return user;
     }
-    
+
     public async Task UpdateAsync(User user)
     {
         _db.Users.Update(user);
         await _db.SaveChangesAsync();
     }
-    
+
     public async Task DeleteAsync(Guid id)
     {
         var user = await _db.Users.FindAsync(id);
@@ -350,15 +350,15 @@ public interface IUnitOfWork : IDisposable
 public class EfUnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _db;
-    
+
     public EfUnitOfWork(AppDbContext db) => _db = db;
-    
+
     public IUserRepository Users => new EfUserRepository(_db);
     public IApiKeyRepository ApiKeys => new EfApiKeyRepository(_db);
-    
+
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         => await _db.SaveChangesAsync(ct);
-        
+
     public void Dispose() => _db.Dispose();
 }
 ```

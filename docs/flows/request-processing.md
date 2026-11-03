@@ -20,9 +20,9 @@ sequenceDiagram
     Middleware->>Routing: Pipeline continues
     Routing->>Controller: Instantiate controller\nBind request DTO (TRequest)
     Controller->>Base: ProcessRequest(request, action, auth)
-    
+
     Note over Base: ProcessRequest<TRequest, TResponse> overload shown
-    
+
     Base->>Base: Validate request ≠ null
     alt Request is null
         Base-->>Controller: BadRequest(InvalidRequest)
@@ -30,7 +30,7 @@ sequenceDiagram
     else Request valid
         Base->>Auth: AuthoriseRequest(auth)
         Auth->>Auth: auth.Authorise(Authorization header)
-        
+
         alt auth.Name == "None"
             Auth-->>Base: Success (no-op)
         else Authorization header missing/empty
@@ -38,7 +38,7 @@ sequenceDiagram
         else Bearer token present
             Auth->>Auth: Strip "Bearer " prefix (regex, ignore case)
             Auth->>Auth: PerformAuthorisation(token)
-            
+
             alt NuciApiKeyAuthorisation
                 Auth->>Auth: Key.Equals(token)?
                 alt Match
@@ -57,7 +57,7 @@ sequenceDiagram
                 end
             end
         end
-        
+
         alt Authorisation failed
             Base-->>Controller: Exception propagates
             Controller-->>Middleware: Exception → Exception Handler → 401
@@ -70,11 +70,11 @@ sequenceDiagram
             else Header absent
                 HMAC->>Base: request.HmacToken unchanged (null)
             end
-            
+
             Base->>Controller: Execute action delegate
             Controller->>Controller: Business logic
             Controller-->>Base: Return response (TResponse or void)
-            
+
             alt TResponse overload
                 alt response == null && HTTP GET
                     Base-->>Controller: NotFound(NotFound)
@@ -84,11 +84,11 @@ sequenceDiagram
             else No-response overload
                 Base-->>Controller: Ok(SuccessResponse.Default)
             end
-            
+
             Controller-->>Routing: ActionResult
         end
     end
-    
+
     Routing->>Middleware: ActionResult → ObjectResult → JSON
     Middleware->>Client: HTTP Response\nStatus: 200/400/401/404\nBody: JSON response
 ```
@@ -118,7 +118,7 @@ private void AuthoriseRequest(NuciApiAuthorisation authorisation)
 {
     if (authorisation is null)
         throw new NotImplementedException("This endpoint has no authorisation specified.");
-    
+
     authorisation.Authorise(GetHeaderValue("Authorization"));
 }
 ```
@@ -131,10 +131,10 @@ private void AuthoriseRequest(NuciApiAuthorisation authorisation)
 public void Authorise(string authorisationData)
 {
     if (Name.Equals(None.Name)) return;
-    
+
     if (string.IsNullOrEmpty(authorisationData))
         throw new AuthenticationException("Missing authorisation data.");
-    
+
     PerformAuthorisation(Regex.Replace(
         authorisationData.Trim(),
         @"^Bearer\s+", "",

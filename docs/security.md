@@ -55,7 +55,7 @@ NuciApiAuthorisation.None
 public class JwtAuthorisation : NuciApiAuthorisation
 {
     public JwtAuthorisation() : base("Jwt") { }
-    
+
     protected override void PerformAuthorisation(string token)
     {
         // Validate JWT: signature, claims, expiration
@@ -121,7 +121,7 @@ public class JwtAuthorisation : NuciApiAuthorisation
 var key = await _keyVaultClient.GetSecretAsync("api-key");
 
 // Good: Key from environment
-var key = Environment.GetEnvironmentVariable("API_KEY") 
+var key = Environment.GetEnvironmentVariable("API_KEY")
     ?? throw new InvalidOperationException("API_KEY not set");
 
 // Bad: Hard-coded
@@ -144,14 +144,14 @@ protected override ActionResult ProcessRequest<TRequest, TResponse>(
     // Validate HMAC before base processing
     if (!ValidateHmac(request.HmacToken, request))
         return Unauthorized();
-    
+
     return base.ProcessRequest(request, action, auth);
 }
 
 private bool ValidateHmac(string hmacToken, TRequest request)
 {
     if (string.IsNullOrEmpty(hmacToken)) return false;
-    
+
     // Verify signature, timestamp, nonce
     var expected = ComputeHmac(request, _hmacKey);
     return CryptographicOperations.FixedTimeEquals(

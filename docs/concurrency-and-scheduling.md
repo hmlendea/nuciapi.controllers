@@ -116,7 +116,7 @@ public ActionResult BatchProcess(BatchRequest request)
             .AsParallel()
             .Select(item => _processor.Process(item))
             .ToList();
-        
+
         return new BatchResponse { Results = results };
     }, NuciApiAuthorisation.ApiKey("key"));
 }
@@ -247,7 +247,7 @@ public ActionResult Action(Request request)
 public class RateLimitedService
 {
     private readonly SemaphoreSlim _semaphore = new(100); // Max 100 concurrent
-    
+
     public async Task<Result> ProcessAsync(Request request, CancellationToken ct)
     {
         await _semaphore.WaitAsync(ct);
@@ -272,18 +272,18 @@ public class RateLimitedService
 // BAD: Sync-over-async deadlock risk
 public ActionResult BadAction(Request request)
 {
-    var result = ProcessRequestAsync(request, async () => 
+    var result = ProcessRequestAsync(request, async () =>
     {
         await _service.DoAsync(); // Captures context if not ConfigureAwait(false)
     }, auth).Result; // BLOCKS - deadlock in ASP.NET Core sync context
-    
+
     return result;
 }
 
 // GOOD: Fully async
 public async Task<ActionResult> GoodAction(Request request)
 {
-    return await ProcessRequestAsync(request, async () => 
+    return await ProcessRequestAsync(request, async () =>
     {
         await _service.DoAsync();
     }, auth);
@@ -310,13 +310,13 @@ public async Task ConcurrentRequests_AllSucceed()
 {
     var client = _factory.CreateClient();
     client.DefaultRequestHeaders.Authorization = new("Bearer", "key");
-    
+
     var tasks = Enumerable.Range(0, 100)
         .Select(_ => client.PostAsJsonAsync("/api/test", new TestRequest()))
         .ToArray();
-    
+
     var responses = await Task.WhenAll(tasks);
-    
+
     Assert.IsTrue(responses.All(r => r.IsSuccessStatusCode));
 }
 ```
@@ -329,9 +329,9 @@ public async Task SharedAuthorisation_ThreadSafe()
 {
     var auth = NuciApiAuthorisation.ApiKey("key");
     var controller = new TestController();
-    
+
     var tasks = Enumerable.Range(0, 1000)
-        .Select(i => Task.Run(() => 
+        .Select(i => Task.Run(() =>
         {
             controller.ControllerContext = new ControllerContext
             {
@@ -341,7 +341,7 @@ public async Task SharedAuthorisation_ThreadSafe()
             return controller.TestAction(new TestRequest(), auth);
         }))
         .ToArray();
-    
+
     var results = await Task.WhenAll(tasks);
     Assert.IsTrue(results.All(r => r is OkObjectResult));
 }

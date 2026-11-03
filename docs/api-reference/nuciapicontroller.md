@@ -13,8 +13,8 @@ namespace NuciAPI.Controllers
 }
 ```
 
-**Base Class**: `Microsoft.AspNetCore.Mvc.ControllerBase`  
-**Namespace**: `NuciAPI.Controllers`  
+**Base Class**: `Microsoft.AspNetCore.Mvc.ControllerBase`
+**Namespace**: `NuciAPI.Controllers`
 **Assembly**: `NuciAPI.Controllers.dll` (NuGet: `NuciAPI.Controllers` 2.3.1)
 
 ---
@@ -137,7 +137,7 @@ public ActionResult GetUser(GetUserRequest request)
     return ProcessRequest(request, () =>
     {
         var user = _userService.GetById(request.Id);
-        return user != null 
+        return user != null
             ? new UserResponse { Name = user.Name, Email = user.Email }
             : null; // Triggers 404 for GET
     }, NuciApiAuthorisation.ApiKey("key"));
@@ -297,7 +297,7 @@ Used for 400 and 404 responses.
 [HttpPost("action")]
 public ActionResult DoAction(CommandRequest request)
 {
-    return ProcessRequest(request, () => 
+    return ProcessRequest(request, () =>
     {
         _service.Execute(request);
     }, NuciApiAuthorisation.ApiKey("key"));
@@ -309,7 +309,7 @@ public ActionResult DoAction(CommandRequest request)
 [HttpGet("item/{id}")]
 public ActionResult GetItem(GetItemRequest request)
 {
-    return ProcessRequest(request, () => 
+    return ProcessRequest(request, () =>
     {
         return _repository.Get(request.Id); // Returns ItemResponse or null
     }, NuciApiAuthorisation.ApiKey("key"));
@@ -321,7 +321,7 @@ public ActionResult GetItem(GetItemRequest request)
 [HttpPost("async-action")]
 public async Task<ActionResult> DoAsyncAction(CommandRequest request)
 {
-    return await ProcessRequestAsync(request, async () => 
+    return await ProcessRequestAsync(request, async () =>
     {
         await _service.ExecuteAsync(request);
     }, NuciApiAuthorisation.ApiKey("key"));
@@ -333,7 +333,7 @@ public async Task<ActionResult> DoAsyncAction(CommandRequest request)
 [HttpGet("public")]
 public ActionResult PublicEndpoint(PublicRequest request)
 {
-    return ProcessRequest(request, () => 
+    return ProcessRequest(request, () =>
     {
         return new PublicResponse { Data = "public" };
     }, NuciApiAuthorisation.None);

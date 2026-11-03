@@ -182,7 +182,7 @@ graph TD
     C --> G[Microsoft.AspNetCore.Http]
     C --> H[Microsoft.AspNetCore.Authorization]
     C --> D
-    
+
     style A fill:#f9f,stroke:#333
     style B fill:#bbf,stroke:#333
     style C fill:#bfb,stroke:#333

@@ -17,12 +17,12 @@ using NuciAPI.Controllers;
 public class UsersController : NuciApiController
 {
     private readonly IUserService _userService;
-    
+
     public UsersController(IUserService userService)
     {
         _userService = userService;
     }
-    
+
     [HttpGet("{id:guid}")]
     public ActionResult GetUser(Guid id)
     {
@@ -91,12 +91,12 @@ public ActionResult HealthCheck()
 public class JwtAuthorisation : NuciApiAuthorisation
 {
     private readonly IJwtValidator _validator;
-    
+
     public JwtAuthorisation(IJwtValidator validator)
     {
         _validator = validator;
     }
-    
+
     public override async Task Authorise(HttpRequest request)
     {
         var authHeader = request.Headers["Authorization"].FirstOrDefault();
@@ -104,15 +104,15 @@ public class JwtAuthorisation : NuciApiAuthorisation
         {
             throw new AuthenticationException("Missing or invalid Authorization header.");
         }
-        
+
         var token = authHeader["Bearer ".Length..];
         var principal = await _validator.ValidateAsync(token);
-        
+
         if (principal == null)
         {
             throw new AuthenticationException("Invalid or expired token.");
         }
-        
+
         request.HttpContext.User = principal;
     }
 }
@@ -173,9 +173,9 @@ public async Task<ActionResult> GetDashboard()
         var userTask = _userService.GetCurrentUserAsync();
         var statsTask = _statsService.GetUserStatsAsync();
         var notificationsTask = _notificationService.GetRecentAsync(10);
-        
+
         await Task.WhenAll(userTask, statsTask, notificationsTask);
-        
+
         return new DashboardResponse
         {
             User = userTask.Result,
@@ -195,18 +195,18 @@ public async Task<ActionResult> GetDashboard()
 public ActionResult SecureAction(SecureRequest request)
 {
     var hmacToken = GetHmacToken();
-    
+
     if (hmacToken == null)
     {
         return BadRequest(new { error = "Missing HMAC signature" });
     }
-    
+
     // Validate HMAC (consumer implementation)
     if (!_hmacValidator.Validate(request, hmacToken))
     {
         return Unauthorized(new { error = "Invalid HMAC signature" });
     }
-    
+
     return ProcessRequest(request, () =>
     {
         var result = _secureService.Process(request);
@@ -222,12 +222,12 @@ public class HmacValidationService
 {
     private readonly string _secret;
     private readonly TimeSpan _tolerance = TimeSpan.FromMinutes(5);
-    
+
     public HmacValidationService(IConfiguration config)
     {
         _secret = config["Hmac:Secret"]!;
     }
-    
+
     public bool Validate<T>(T payload, string signature)
     {
         var json = JsonSerializer.Serialize(payload);
@@ -235,7 +235,7 @@ public class HmacValidationService
         return CryptographicOperations.FixedTimeEquals(
             Convert.FromBase64String(signature), expected);
     }
-    
+
     private byte[] ComputeHmac(string data)
     {
         using var hmac = new HMACSHA256(Convert.FromBase64String(_secret));
@@ -252,16 +252,16 @@ public class HmacValidationService
 public class ApiExceptionFilter : IExceptionFilter
 {
     private readonly ILogger<ApiExceptionFilter> _logger;
-    
+
     public ApiExceptionFilter(ILogger<ApiExceptionFilter> logger)
     {
         _logger = logger;
     }
-    
+
     public void OnException(ExceptionContext context)
     {
         var correlationId = context.HttpContext.TraceIdentifier;
-        
+
         switch (context.Exception)
         {
             case ValidationException ex:
@@ -274,7 +274,7 @@ public class ApiExceptionFilter : IExceptionFilter
                 });
                 context.ExceptionHandled = true;
                 break;
-                
+
             case NotFoundException ex:
                 _logger.LogInformation(ex, "Not found | CorrelationId: {CorrelationId}", correlationId);
                 context.Result = new NotFoundObjectResult(new
@@ -284,7 +284,7 @@ public class ApiExceptionFilter : IExceptionFilter
                 });
                 context.ExceptionHandled = true;
                 break;
-                
+
             case UnauthorizedAccessException ex:
                 _logger.LogWarning(ex, "Unauthorized | CorrelationId: {CorrelationId}", correlationId);
                 context.Result = new UnauthorizedObjectResult(new
@@ -294,7 +294,7 @@ public class ApiExceptionFilter : IExceptionFilter
                 });
                 context.ExceptionHandled = true;
                 break;
-                
+
             default:
                 _logger.LogError(context.Exception, "Unhandled error | CorrelationId: {CorrelationId}", correlationId);
                 context.Result = new ObjectResult(new
@@ -326,7 +326,7 @@ public class InsufficientFundsException : Exception
     public Guid AccountId { get; }
     public decimal Available { get; }
     public decimal Requested { get; }
-    
+
     public InsufficientFundsException(Guid accountId, decimal available, decimal requested)
         : base($"Account {accountId} has insufficient funds. Available: {available}, Requested: {requested}")
     {
@@ -347,7 +347,7 @@ public ActionResult Withdraw(WithdrawRequest request)
         {
             throw new InsufficientFundsException(request.AccountId, balance, request.Amount);
         }
-        
+
         _accountService.Withdraw(request.AccountId, request.Amount);
         return new WithdrawResponse { Success = true, NewBalance = balance - request.Amount };
     }, NuciApiAuthorisation.ApiKey("banking-key"));
@@ -368,7 +368,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .EmailAddress().WithMessage("Invalid email format")
             .MustAsync(async (email, ct) => !await userService.ExistsAsync(email))
             .WithMessage("Email already registered");
-            
+
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required")
             .MinimumLength(12).WithMessage("Password must be at least 12 characters")
@@ -376,7 +376,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .Matches("[a-z]").WithMessage("Password must contain lowercase")
             .Matches("[0-9]").WithMessage("Password must contain number")
             .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain special character");
-            
+
         RuleFor(x => x.DisplayName)
             .MaximumLength(100).WithMessage("Display name too long");
     }
@@ -402,13 +402,13 @@ public class UpdateProfileRequest
     [Required]
     [StringLength(100, MinimumLength = 2)]
     public string DisplayName { get; set; } = string.Empty;
-    
+
     [EmailAddress]
     public string? Email { get; set; }
-    
+
     [Phone]
     public string? PhoneNumber { get; set; }
-    
+
     [Url]
     public string? Website { get; set; }
 }
@@ -456,7 +456,7 @@ public ActionResult GetUsers([FromQuery] PagedRequest request)
     {
         var (users, totalCount) = _userService.GetPaged(
             request.Page, request.PageSize, request.Search, request.SortBy, request.SortDescending);
-        
+
         return new PagedResponse<UserData>
         {
             Items = users,
@@ -477,20 +477,20 @@ public ActionResult GetUsers([FromQuery] PagedRequest request)
 public async Task<ActionResult> UploadFile(IFormFile file)
 {
     var request = new UploadRequest { File = file };
-    
+
     return await ProcessRequestAsync(request, async () =>
     {
         if (file.Length > 10 * 1024 * 1024) // 10 MB
         {
             throw new ValidationException("File too large. Maximum 10 MB.");
         }
-        
+
         var allowedTypes = new[] { "image/jpeg", "image/png", "application/pdf" };
         if (!allowedTypes.Contains(file.ContentType))
         {
             throw new ValidationException("Invalid file type. Allowed: JPEG, PNG, PDF.");
         }
-        
+
         var fileId = await _fileService.SaveAsync(file);
         return new UploadResponse { FileId = fileId, FileName = file.FileName };
     }, NuciApiAuthorisation.ApiKey("upload-key"));
@@ -530,9 +530,9 @@ public async Task<ActionResult> Readiness()
         var dbOk = await _dbContext.Database.CanConnectAsync();
         var cacheOk = await _cache.PingAsync();
         var externalOk = await _externalService.HealthCheckAsync();
-        
+
         var status = dbOk && cacheOk && externalOk ? "Ready" : "Degraded";
-        
+
         return new HealthResponse
         {
             Status = status,
@@ -558,56 +558,56 @@ public class UsersControllerTests
 {
     private UsersController _controller;
     private Mock<IUserService> _userServiceMock;
-    
+
     [SetUp]
     public void SetUp()
     {
         _userServiceMock = new Mock<IUserService>();
         _controller = new UsersController(_userServiceMock.Object);
-        
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext()
         };
     }
-    
+
     [Test]
     public void GetUser_ReturnsUser_WhenExists()
     {
         var userId = Guid.NewGuid();
         var user = new UserData { Id = userId, Email = "test@example.com" };
         _userServiceMock.Setup(x => x.GetById(userId)).Returns(user);
-        
+
         _controller.Request.Headers["Authorization"] = "Bearer api-key";
-        
+
         var result = _controller.GetUser(userId);
-        
+
         Assert.IsInstanceOf<OkObjectResult>(result);
         var response = (UserResponse)((OkObjectResult)result).Value;
         Assert.AreEqual(userId, response.Data!.Id);
     }
-    
+
     [Test]
     public void GetUser_Returns404_WhenNotExists()
     {
         var userId = Guid.NewGuid();
         _userServiceMock.Setup(x => x.GetById(userId)).Returns((UserData?)null);
-        
+
         _controller.Request.Headers["Authorization"] = "Bearer api-key";
-        
+
         var result = _controller.GetUser(userId);
-        
+
         Assert.IsInstanceOf<NotFoundObjectResult>(result);
     }
-    
+
     [Test]
     public void GetUser_Returns401_WhenInvalidKey()
     {
         _controller.Request.Headers["Authorization"] = "Bearer wrong-key";
-        
+
         var ex = Assert.Throws<AuthenticationException>(() =>
             _controller.GetUser(Guid.NewGuid()));
-        
+
         Assert.AreEqual("Invalid API key.", ex.Message);
     }
 }
@@ -620,23 +620,23 @@ public class UsersControllerTests
 public class UsersControllerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
-    
+
     public UsersControllerIntegrationTests(WebApplicationFactory<Program> factory)
     {
         _client = factory.CreateClient();
         _client.DefaultRequestHeaders.Authorization = new("Bearer", "test-api-key");
     }
-    
+
     [Test]
     public async Task GetUser_Returns200_WhenUserExists()
     {
         var response = await _client.GetAsync("/api/users/12345678-1234-1234-1234-123456789012");
-        
+
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var user = await response.Content.ReadFromJsonAsync<UserResponse>();
         Assert.IsNotNull(user.Data);
     }
-    
+
     [Test]
     public async Task CreateUser_Returns200_WhenValid()
     {
@@ -645,9 +645,9 @@ public class UsersControllerIntegrationTests : IClassFixture<WebApplicationFacto
             Email = "newuser@example.com",
             DisplayName = "New User"
         };
-        
+
         var response = await _client.PostAsJsonAsync("/api/users", request);
-        
+
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
     }
 }

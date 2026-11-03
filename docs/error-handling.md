@@ -93,7 +93,7 @@ public ActionResult Transfer(TransferRequest request)
     {
         if (request.Amount > _accountService.GetBalance(request.FromAccount))
             throw new InsufficientFundsException(request.FromAccount);
-        
+
         _accountService.Transfer(request.FromAccount, request.ToAccount, request.Amount);
     }, NuciApiAuthorisation.ApiKey("key"));
 }
@@ -249,7 +249,7 @@ app.Use(async (context, next) =>
     try { await next(); }
     catch (Exception ex)
     {
-        _logger.LogError(ex, 
+        _logger.LogError(ex,
             "Request failed: {Method} {Path} | User: {User} | CorrelationId: {CorrelationId}",
             context.Request.Method,
             context.Request.Path,
@@ -286,7 +286,7 @@ public void ProcessRequest_ReturnsBadRequest_WhenRequestNull()
 {
     var controller = new TestController();
     var result = controller.TestAction(null, NuciApiAuthorisation.None);
-    
+
     Assert.IsInstanceOf<BadRequestObjectResult>(result);
     var error = (result as BadRequestObjectResult).Value as NuciApiErrorResponse;
     Assert.AreEqual(NuciApiErrorResponse.InvalidRequest, error);
@@ -305,10 +305,10 @@ public void ProcessRequest_ThrowsAuthenticationException_WhenInvalidKey()
         HttpContext = new DefaultHttpContext()
     };
     controller.Request.Headers["Authorization"] = "Bearer wrong-key";
-    
+
     var ex = Assert.Throws<AuthenticationException>(() =>
         controller.TestAction(new TestRequest(), NuciApiAuthorisation.ApiKey("correct-key")));
-    
+
     Assert.AreEqual("Invalid API key.", ex.Message);
 }
 ```
@@ -321,9 +321,9 @@ public async Task Endpoint_Returns401_WhenMissingAuth()
 {
     var client = _factory.CreateClient();
     // No Authorization header
-    
+
     var response = await client.PostAsJsonAsync("/api/test", new TestRequest());
-    
+
     Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
     var body = await response.Content.ReadFromJsonAsync<ErrorResponse>();
     Assert.AreEqual("Missing authorisation data.", body.Error);

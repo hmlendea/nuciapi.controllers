@@ -120,7 +120,7 @@ public class AppDbContext : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<ApiKey> ApiKeys { get; set; }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApiKey>()
@@ -139,7 +139,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 public class UserService
 {
     private readonly AppDbContext _db;
-    
+
     public async Task<User> CreateAsync(CreateUserRequest request)
     {
         var user = new User { ... };
@@ -154,14 +154,14 @@ public class UserService
 
 ```csharp
 // Registration
-builder.Services.AddScoped<IDbConnection>(_ => 
+builder.Services.AddScoped<IDbConnection>(_ =>
     new NpgsqlConnection(connectionString));
 
 // Repository
 public class DapperUserRepository : IUserRepository
 {
     private readonly IDbConnection _db;
-    
+
     public async Task<User?> GetByIdAsync(Guid id)
     {
         return await _db.QueryFirstOrDefaultAsync<User>(
@@ -186,13 +186,13 @@ public class CachedUserService
 {
     private readonly IDistributedCache _cache;
     private readonly IUserRepository _repo;
-    
+
     public async Task<UserDto> GetAsync(Guid id)
     {
         var key = $"user:{id}";
         var cached = await _cache.GetStringAsync(key);
         if (cached != null) return JsonSerializer.Deserialize<UserDto>(cached);
-        
+
         var user = await _repo.GetByIdAsync(id);
         if (user != null)
         {
@@ -216,7 +216,7 @@ builder.Services.AddMemoryCache();
 public class MemoryCachedService
 {
     private readonly IMemoryCache _cache;
-    
+
     public T GetOrCreate<T>(string key, Func<T> factory, TimeSpan ttl)
     {
         return _cache.GetOrCreate(key, entry =>
@@ -238,7 +238,7 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "NuciAPI.Controllers")
-    .WriteTo.Console(outputTemplate: 
+    .WriteTo.Console(outputTemplate:
         "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
     .WriteTo.Seq("http://seq:5341")
     .CreateLogger();
@@ -263,12 +263,12 @@ builder.Host.UseSerilog();
 public class UsersController : NuciApiController
 {
     private readonly ILogger<UsersController> _logger;
-    
+
     public UsersController(ILogger<UsersController> logger, ...)
     {
         _logger = logger;
     }
-    
+
     [HttpGet("{id}")]
     public ActionResult<UserDto> Get(Guid id)
     {
@@ -333,14 +333,14 @@ public class MetricsService
 {
     private readonly Counter<int> _requestCounter;
     private readonly Histogram<double> _requestDuration;
-    
+
     public MetricsService(IMeterFactory meterFactory)
     {
         var meter = meterFactory.Create("NuciAPI.Controllers");
         _requestCounter = meter.CreateCounter<int>("requests_total");
         _requestDuration = meter.CreateHistogram<double>("request_duration_seconds");
     }
-    
+
     public void RecordRequest(string endpoint, double duration, bool success)
     {
         _requestCounter.Add(1, new("endpoint", endpoint), new("success", success));
@@ -354,7 +354,7 @@ public class MetricsService
 ### RabbitMQ
 
 ```csharp
-builder.Services.AddSingleton<IConnectionFactory>(_ => 
+builder.Services.AddSingleton<IConnectionFactory>(_ =>
     new ConnectionFactory { Uri = new Uri(rabbitMqConnectionString) });
 
 builder.Services.AddScoped<IMessagePublisher, RabbitMqPublisher>();
@@ -363,7 +363,7 @@ builder.Services.AddScoped<IMessagePublisher, RabbitMqPublisher>();
 public class OrderService
 {
     private readonly IMessagePublisher _publisher;
-    
+
     public async Task CreateOrderAsync(CreateOrderRequest request)
     {
         var order = await _repo.CreateAsync(request);
@@ -376,7 +376,7 @@ public class OrderService
 ### Azure Service Bus
 
 ```csharp
-builder.Services.AddSingleton<ServiceBusClient>(_ => 
+builder.Services.AddSingleton<ServiceBusClient>(_ =>
     new ServiceBusClient(serviceBusConnectionString));
 
 builder.Services.AddScoped<IMessagePublisher, ServiceBusPublisher>();
@@ -399,7 +399,7 @@ builder.Services.AddHttpClient<IExternalApi, ExternalApiClient>(client =>
 public class ExternalApiClient : IExternalApi
 {
     private readonly HttpClient _http;
-    
+
     public async Task<ExternalData> GetDataAsync(string id)
     {
         var response = await _http.GetAsync($"data/{id}");
@@ -547,7 +547,7 @@ jobs:
     - run: dotnet restore
     - run: dotnet build --configuration Release --no-restore
     - run: dotnet test --configuration Release --no-build --verbosity normal
-    
+
   publish:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

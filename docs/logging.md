@@ -35,7 +35,7 @@ builder.Host.UseSerilog((context, config) =>
     config.ReadFrom.Configuration(context.Configuration)
           .Enrich.FromLogContext()
           .Enrich.WithProperty("Application", "MyApi")
-          .WriteTo.Console(outputTemplate: 
+          .WriteTo.Console(outputTemplate:
               "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}");
 });
 ```
@@ -46,9 +46,9 @@ builder.Host.UseSerilog((context, config) =>
 // Middleware for correlation ID
 app.Use(async (context, next) =>
 {
-    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() 
+    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault()
         ?? context.TraceIdentifier;
-    
+
     using (LogContext.PushProperty("CorrelationId", correlationId))
     using (LogContext.PushProperty("RequestPath", context.Request.Path))
     using (LogContext.PushProperty("RequestMethod", context.Request.Method))
@@ -97,7 +97,7 @@ var correlationId = context.TraceIdentifier;
 LogContext.PushProperty("CorrelationId", correlationId);
 
 // In controller
-_logger.LogInformation("Processing {Action} for user {UserId}", 
+_logger.LogInformation("Processing {Action} for user {UserId}",
     nameof(GetUser), userId);
 
 // In service
@@ -247,7 +247,7 @@ try
 }
 catch (Exception ex)
 {
-    _logger.LogError(ex, 
+    _logger.LogError(ex,
         "Operation failed: {Operation} | User: {UserId} | CorrelationId: {CorrelationId}",
         nameof(DoWorkAsync), userId, correlationId);
     throw; // Re-throw for middleware
@@ -283,13 +283,13 @@ catch (Exception ex)
 ```csharp
 // Separate audit logger
 var auditLog = new LoggerConfiguration()
-    .WriteTo.Async(a => a.File("audit/audit-.json", 
+    .WriteTo.Async(a => a.File("audit/audit-.json",
         rollingInterval: RollingInterval.Day,
         formatter: new JsonFormatter()))
     .CreateLogger();
 
 // Usage
-auditLog.Information("AuthSuccess {UserId} {Method} {CorrelationId}", 
+auditLog.Information("AuthSuccess {UserId} {Method} {CorrelationId}",
     userId, "ApiKey", correlationId);
 ```
 

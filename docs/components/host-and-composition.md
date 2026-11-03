@@ -105,7 +105,7 @@ public class MyController : NuciApiController
     [HttpPost("endpoint")]
     public ActionResult MyEndpoint(MyRequest request)
     {
-        return ProcessRequest(request, () => { ... }, 
+        return ProcessRequest(request, () => { ... },
             NuciApiAuthorisation.ApiKey(_keyProvider.GetKey()));
     }
 }
@@ -141,7 +141,7 @@ public class ConfigurationApiKeyProvider : IApiKeyProvider
 {
     private readonly IConfiguration _config;
     public ConfigurationApiKeyProvider(IConfiguration config) => _config = config;
-    public string GetKey() => _config["ApiKeys:Default"] 
+    public string GetKey() => _config["ApiKeys:Default"]
         ?? throw new InvalidOperationException("API key not configured");
 }
 ```
@@ -201,9 +201,9 @@ public async Task MyEndpoint_Returns401_WhenInvalidKey()
 {
     var client = _factory.CreateClient();
     client.DefaultRequestHeaders.Authorization = new("Bearer", "wrong");
-    
+
     var response = await client.PostAsJsonAsync("/api/my/endpoint", new MyRequest());
-    
+
     Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
 }
 ```

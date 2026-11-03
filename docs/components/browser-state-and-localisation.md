@@ -50,7 +50,7 @@ public ActionResult Login(LoginRequest request)
     return ProcessRequest(request, () =>
     {
         var token = _authService.Authenticate(request.Email, request.Password);
-        
+
         Response.Cookies.Append("auth-token", token, new CookieOptions
         {
             HttpOnly = true,
@@ -58,7 +58,7 @@ public ActionResult Login(LoginRequest request)
             SameSite = SameSiteMode.Strict,
             Expires = DateTimeOffset.UtcNow.AddHours(1)
         });
-        
+
         return new LoginResponse { Success = true };
     }, NuciApiAuthorisation.None);
 }
@@ -74,7 +74,7 @@ app.UseAntiforgery();
 class AuthService {
     private accessToken: string | null = null;
     private refreshToken: string | null = null;
-    
+
     async login(credentials: LoginRequest) {
         const response = await fetch('/api/login', {
             method: 'POST',
@@ -82,14 +82,14 @@ class AuthService {
             body: JSON.stringify(credentials),
             credentials: 'include' // For HttpOnly cookies
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             this.accessToken = data.accessToken;
             this.refreshToken = data.refreshToken; // Store in memory
         }
     }
-    
+
     async apiCall<T>(url: string, options: RequestInit = {}): Promise<T> {
         const response = await fetch(url, {
             ...options,
@@ -99,12 +99,12 @@ class AuthService {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (response.status === 401) {
             await this.refreshAccessToken();
             return this.apiCall(url, options); // Retry
         }
-        
+
         return response.json();
     }
 }
@@ -139,7 +139,7 @@ public async Task<ActionResult> GetData()
         // Server-side: uses API key from config (not browser)
         var upstream = await _httpClient.GetAsync("https://api.upstream.com/data",
             HttpCompletionOption.ResponseHeadersRead);
-        
+
         upstream.EnsureSuccessStatusCode();
         return await upstream.Content.ReadFromJsonAsync<DataResponse>();
     }, NuciApiAuthorisation.None); // Browser auth via cookie
@@ -177,11 +177,11 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
         new CultureInfo("fr-FR"),
         new CultureInfo("ro-RO")
     };
-    
+
     options.DefaultRequestCulture = new RequestCulture("en-US");
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
-    
+
     // Priority: Query string -> Cookie -> Header -> Default
     options.RequestCultureProviders = new List<IRequestCultureProvider>
     {
@@ -250,7 +250,7 @@ return ProcessRequest(request, () =>
 {
     if (!userExists)
         throw new NotFoundException(localizer["UserNotFound", userId]);
-    
+
     return new UserResponse { Data = user };
 }, auth);
 ```
@@ -314,7 +314,7 @@ import { useTranslation } from 'react-i18next';
 
 export function Greeting() {
     const { t } = useTranslation('common');
-    
+
     return <h1>{t('welcome', { name: 'User' })}</h1>;
 >
 }
@@ -355,11 +355,11 @@ builder.Services.AddSingleton<IClock>(SystemClock.Instance);
 public class AuditService
 {
     private readonly IClock _clock;
-    
+
     public AuditService(IClock clock) => _clock = clock;
-    
+
     public Instant Now => _clock.GetCurrentInstant();
-    
+
     public ZonedDateTime InUserZone(Instant instant, string ianaZone)
     {
         return instant.InZone(DateTimeZoneProviders.Tzdb[ianaZone]);

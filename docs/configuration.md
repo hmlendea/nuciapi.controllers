@@ -73,29 +73,29 @@ public class HmacValidationService
 {
     private readonly HmacOptions _options;
     private readonly ConcurrentDictionary<string, DateTime> _replayCache = new();
-    
+
     public HmacValidationService(IOptions<HmacOptions> options)
     {
         _options = options.Value;
     }
-    
+
     public bool Validate(string payload, string signature, string timestamp)
     {
         // Check timestamp tolerance
         if (!long.TryParse(timestamp, out var ts) ||
             Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - ts) > _options.TimestampToleranceSeconds)
             return false;
-        
+
         // Check replay
         var cacheKey = $"{timestamp}:{signature}";
         if (!_replayCache.TryAdd(cacheKey, DateTime.UtcNow))
             return false;
-        
+
         // Cleanup old entries
         var cutoff = DateTime.UtcNow.AddSeconds(-_options.TimestampToleranceSeconds * 2);
         foreach (var kvp in _replayCache)
             if (kvp.Value < cutoff) _replayCache.TryRemove(kvp.Key, out _);
-        
+
         // Verify signature
         var expected = ComputeHmac(payload, timestamp);
         return CryptographicOperations.FixedTimeEquals(
@@ -211,10 +211,10 @@ public class AuthOptions
     [Required]
     [MinLength(32)]
     public string ApiKey { get; set; } = string.Empty;
-    
+
     [Range(1, 3600)]
     public int TokenExpiryMinutes { get; set; } = 60;
-    
+
     [Url]
     public string? KeyRotationEndpoint { get; set; }
 }
@@ -244,12 +244,12 @@ builder.Services.AddOptions<AuthOptions>()
 public class MyController : NuciApiController
 {
     private readonly IOptionsSnapshot<AuthOptions> _authOptions;
-    
+
     public MyController(IOptionsSnapshot<AuthOptions> authOptions)
     {
         _authOptions = authOptions;
     }
-    
+
     [HttpPost]
     public ActionResult Action(Request request)
     {
@@ -268,13 +268,13 @@ public class AuthKeyRotator : IHostedService
     private readonly IOptionsMonitor<AuthOptions> _options;
     private readonly IApiKeyProvider _keyProvider;
     private IDisposable? _subscription;
-    
+
     public AuthKeyRotator(IOptionsMonitor<AuthOptions> options, IApiKeyProvider keyProvider)
     {
         _options = options;
         _keyProvider = keyProvider;
     }
-    
+
     public Task StartAsync(CancellationToken ct)
     {
         _subscription = _options.OnChange(async (newOptions, name) =>
@@ -283,7 +283,7 @@ public class AuthKeyRotator : IHostedService
         });
         return Task.CompletedTask;
     }
-    
+
     public Task StopAsync(CancellationToken ct)
     {
         _subscription?.Dispose();

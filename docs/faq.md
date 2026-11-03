@@ -66,7 +66,7 @@ Yes, implement custom `NuciApiAuthorisation`:
 public class MultiKeyAuthorisation : NuciApiAuthorisation
 {
     private readonly HashSet<string> _validKeys;
-    
+
     protected override Task PerformAuthorisation(HttpRequest request)
     {
         var header = request.Headers.Authorization.FirstOrDefault();
@@ -132,7 +132,7 @@ Wraps action in standard pattern:
 Yes, catch exceptions before `ProcessRequest` or use middleware:
 
 ```csharp
-try 
+try
 {
     return ProcessRequest(req, () => work(), auth);
 }
@@ -250,7 +250,7 @@ Common causes:
 
 ```csharp
 // Wrong
-public ActionResult Get() 
+public ActionResult Get()
 {
     ProcessRequestAsync(req, () => WorkAsync(), auth);
     return Ok();
