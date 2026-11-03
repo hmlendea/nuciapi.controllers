@@ -60,6 +60,10 @@ public class MyController : NuciApiController
 
 NuciAPI.Controllers does not collect, process, transmit, or persist any personal data. It is a library that provides base controller classes and authorisation abstractions for ASP.NET Core APIs. The library itself has no telemetry, no external integrations that transmit data, and no data storage. For the detailed description, see [PRIVACY.md](./PRIVACY.md).
 
+## 📜 Code of Conduct
+
+This project follows the [Code of Conduct](./CODE_OF_CONDUCT.md).
+
 ## 🤝 Contributing
 
 You are welcome to submit any suggestion, feedback, or modification to this project.
