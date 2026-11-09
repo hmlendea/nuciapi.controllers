@@ -585,7 +585,7 @@ public async Task ProcessRequestAsync_AsyncOperation_ReturnsOk()
 # .github/workflows/dotnet.yml
 - name: Run tests
   run: |
-    dotnet test NuciAPI.Controllers.Tests/NuciAPI.Controllers.Tests.csproj \
+    dotnet test NuciAPI.Controllers.UnitTests/NuciAPI.Controllers.UnitTests.csproj \
       --configuration Release \
       --no-build \
       --collect:"XPlat Code Coverage" \
@@ -596,6 +596,52 @@ public async Task ProcessRequestAsync_AsyncOperation_ReturnsOk()
   uses: codecov/codecov-action@v3
   with:
     files: TestResults/**/coverage.cobertura.xml
+```
+
+```yaml
+# .github/workflows/security.yml
+name: Security
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Check for vulnerable packages
+      run: dotnet list package --vulnerable --include-transitive
+
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v4
+      with:
+        languages: csharp
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
 ```
 
 ### Coverage Thresholds

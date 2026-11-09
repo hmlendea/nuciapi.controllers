@@ -120,36 +120,87 @@ docs/
 </Solution>
 ```
 
-## GitHub Workflows: .github/workflows/dotnet.yml
+## GitHub Workflows
+
+### .github/workflows/dotnet.yml
 
 ```yaml
 name: .NET
 
 on:
   push:
-    branches: [dev, main]
+    branches: [ master ]
   pull_request:
-    branches: [dev, main]
+    branches: [ master ]
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: 10.0.x
 
-    - name: Restore
-      run: dotnet restore NuciAPI.Controllers.slnx
+    - name: Restore dependencies
+      run: dotnet restore
 
     - name: Build
-      run: dotnet build NuciAPI.Controllers.slnx --configuration Release --no-restore
+      run: dotnet build --no-restore
 
     - name: Test
-      run: dotnet test NuciAPI.Controllers.slnx --configuration Release --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal
+```
+
+### .github/workflows/security.yml
+
+```yaml
+name: Security
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Check for vulnerable packages
+      run: dotnet list package --vulnerable --include-transitive
+
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v4
+      with:
+        languages: csharp
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
 ```
 
 ## File Purposes

@@ -1,6 +1,7 @@
 [![Donate](https://img.shields.io/badge/-%E2%99%A5%20Donate-%23ff69b4)](https://hmlendea.go.ro/funding)
 [![Latest Release](https://img.shields.io/github/v/release/hmlendea/nuciapi.controllers)](https://github.com/hmlendea/nuciapi.controllers/releases/latest)
 [![Build Status](https://github.com/hmlendea/nuciapi.controllers/actions/workflows/dotnet.yml/badge.svg)](https://github.com/hmlendea/nuciapi.controllers/actions/workflows/dotnet.yml)
+[![Security Scan](https://github.com/hmlendea/nuciapi.controllers/actions/workflows/security.yml/badge.svg)](https://github.com/hmlendea/nuciapi.controllers/actions/workflows/security.yml)
 [![NuGet](https://img.shields.io/nuget/v/NuciAPI.Controllers)](https://nuget.org/packages/NuciAPI.Controllers)
 [![License](https://img.shields.io/github/license/hmlendea/nuciapi.controllers)](https://github.com/hmlendea/nuciapi.controllers/blob/master/LICENSE)
 
