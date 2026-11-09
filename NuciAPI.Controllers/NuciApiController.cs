@@ -1,15 +1,19 @@
 using System;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Mvc;
 
 using NuciAPI.Requests;
 using NuciAPI.Responses;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace NuciAPI.Controllers
 {
+    /// <summary>
+    /// Provides the base controller that standardises request validation, authorisation,
+    /// HMAC extraction, and response wrapping for ASP.NET Core REST APIs.
+    /// </summary>
     public abstract class NuciApiController : ControllerBase
     {
         /// <summary>
@@ -35,6 +39,7 @@ namespace NuciAPI.Controllers
             RetrieveHmacTokenFromHeaders(request);
 
             action();
+
             return Ok(NuciApiSuccessResponse.Default);
         }
 
@@ -61,6 +66,7 @@ namespace NuciAPI.Controllers
             RetrieveHmacTokenFromHeaders(request);
 
             await action().ConfigureAwait(false);
+
             return Ok(NuciApiSuccessResponse.Default);
         }
 
@@ -90,7 +96,8 @@ namespace NuciAPI.Controllers
 
             TResponse response = action();
 
-            if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
+            if (response is null
+                && string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
                 return NotFound(NuciApiErrorResponse.NotFound);
             }
@@ -124,7 +131,8 @@ namespace NuciAPI.Controllers
 
             TResponse response = await action().ConfigureAwait(false);
 
-            if (response is null && Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase))
+            if (response is null
+                && string.Equals(Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
                 return NotFound(NuciApiErrorResponse.NotFound);
             }
@@ -132,8 +140,22 @@ namespace NuciAPI.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Retrieves the first value of the specified request header.
+        /// </summary>
+        /// <param name="headerName">The name of the header to retrieve.</param>
+        /// <returns>The header value, or an empty string when the header is absent.</returns>
         protected string GetHeaderValue(string headerName)
-            => Request.Headers[headerName].FirstOrDefault();
+        {
+            string headerValue = Request.Headers[headerName].FirstOrDefault();
+
+            if (headerValue is null)
+            {
+                return string.Empty;
+            }
+
+            return headerValue;
+        }
 
         private void AuthoriseRequest(NuciApiAuthorisation authorisation)
         {
