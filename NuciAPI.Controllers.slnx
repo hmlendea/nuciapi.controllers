@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="NuciAPI.Controllers/NuciAPI.Controllers.csproj" />
+  <Project Path="NuciAPI.Controllers.ArchitectureTests/NuciAPI.Controllers.ArchitectureTests.csproj" />
   <Project Path="NuciAPI.Controllers.UnitTests/NuciAPI.Controllers.UnitTests.csproj" />
 </Solution>
